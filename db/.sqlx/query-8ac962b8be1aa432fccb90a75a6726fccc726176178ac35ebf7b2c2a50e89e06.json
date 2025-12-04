@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE ROOMS\n                SET\n                    status =     $1,\n                    players =    $2,\n                    spectators = $3\n                WHERE id = $4\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        },
+        "Int2",
+        "Int2",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8ac962b8be1aa432fccb90a75a6726fccc726176178ac35ebf7b2c2a50e89e06"
+}

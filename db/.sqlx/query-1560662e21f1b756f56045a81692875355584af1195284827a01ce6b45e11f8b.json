@@ -1,0 +1,81 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE (room_code = $1)\n                ORDER BY created_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "room_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "room_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "status: RoomStatus",
+        "type_info": {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "players",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "max_players",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "spectators",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "max_spectators",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1560662e21f1b756f56045a81692875355584af1195284827a01ce6b45e11f8b"
+}

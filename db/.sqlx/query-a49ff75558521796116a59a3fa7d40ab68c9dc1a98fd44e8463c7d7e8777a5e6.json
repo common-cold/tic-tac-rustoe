@@ -1,0 +1,92 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE ($1::room_status IS NULL OR status = $1::room_status)\n                ORDER BY created_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "room_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "room_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "status: RoomStatus",
+        "type_info": {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "players",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "max_players",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "spectators",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "max_spectators",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a49ff75558521796116a59a3fa7d40ab68c9dc1a98fd44e8463c7d7e8777a5e6"
+}

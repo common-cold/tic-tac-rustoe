@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO ROOMS (\n                    room_name,\n                    room_code,\n                    status,\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators\n                )\n                VALUES ($1, $2, $3, $4, $5, $6, $7)\n                RETURNING \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators,\n                    created_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "room_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "room_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "status: RoomStatus",
+        "type_info": {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "players",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "max_players",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "spectators",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "max_spectators",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        },
+        "Int2",
+        "Int2",
+        "Int2",
+        "Int2"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d02eac4552d899251768ce9187d802f5448c329b599f17165254aa94d5659f89"
+}
