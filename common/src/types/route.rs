@@ -1,10 +1,16 @@
-use db::schema::{Role, RoomStatus};
 use serde::{Deserialize, Serialize};
 
+use crate::types::{Role, RoomStatus};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Signup {
     pub email: String,
+    pub username: String,
+    pub password: String
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Signin {
     pub username: String,
     pub password: String
 }
@@ -26,6 +32,7 @@ pub struct GetRooms {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JoinRoom {
+    #[serde(rename = "roomCode")]
     pub room_code: String,
     pub role: Role
 }

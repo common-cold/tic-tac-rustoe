@@ -1,13 +1,11 @@
 use std::env;
 
 use anyhow::Ok;
+use common::types::{Room, RoomStatus, User};
 use dotenv::dotenv;
 use rand::Rng;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
-use crate::schema::{Room, RoomStatus, User};
-
-pub mod schema;
 
 #[derive(Clone)]
 pub struct Database {
@@ -48,7 +46,7 @@ impl Database {
         Ok(db_user)
     }
 
-    pub async fn get_user(&self, username: String, password: String) -> anyhow::Result<User> {
+    pub async fn get_user(&self, username: &String, password: &String) -> anyhow::Result<User> {
         let db_user = sqlx::query_as!(
             User,
             r#"

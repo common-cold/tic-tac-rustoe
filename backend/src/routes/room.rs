@@ -1,10 +1,8 @@
 use actix_web::{HttpResponse, get, post, web};
-use db::{Database, schema::{Role, Room}};
+use common::{auth::JwtClaims, types::{CreateRoom, GetRooms, JoinRoom, Role, Room}};
+use db::Database;
 use serde_json::json;
 use page_hunter::paginate_records;
-
-use crate::routes::{CreateRoom, GetRooms, JoinRoom};
-
 
 
 
@@ -29,7 +27,8 @@ pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>) -
 }
 
 #[get("/rooms")]
-pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRooms>) -> HttpResponse {
+pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRooms>, claims: JwtClaims) -> HttpResponse {
+    println!("{:?}", claims);   
     let database = db.get_ref();
     match database.get_rooms(body.status.clone()).await {
         Ok(rooms) => {
