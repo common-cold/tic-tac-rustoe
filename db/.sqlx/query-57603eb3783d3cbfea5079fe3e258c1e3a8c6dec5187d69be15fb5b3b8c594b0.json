@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                INSERT INTO ROOMS (\n                    room_name,\n                    room_code,\n                    status,\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators\n                )\n                VALUES ($1, $2, $3, $4, $5, $6, $7)\n                RETURNING \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators,\n                    created_at\n            ",
+  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<HashSet<Uuid>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<HashSet<Uuid>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE (room_code = $1)\n                ORDER BY created_at DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -36,8 +36,8 @@
       },
       {
         "ordinal": 4,
-        "name": "players",
-        "type_info": "Int2"
+        "name": "players!: Json<HashSet<Uuid>>",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 5,
@@ -46,8 +46,8 @@
       },
       {
         "ordinal": 6,
-        "name": "spectators",
-        "type_info": "Int2"
+        "name": "spectators!: Json<HashSet<Uuid>>",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 7,
@@ -62,24 +62,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
-        "Text",
-        {
-          "Custom": {
-            "name": "room_status",
-            "kind": {
-              "Enum": [
-                "Open",
-                "InProgress",
-                "Closed"
-              ]
-            }
-          }
-        },
-        "Int2",
-        "Int2",
-        "Int2",
-        "Int2"
+        "Text"
       ]
     },
     "nullable": [
@@ -94,5 +77,5 @@
       false
     ]
   },
-  "hash": "d02eac4552d899251768ce9187d802f5448c329b599f17165254aa94d5659f89"
+  "hash": "57603eb3783d3cbfea5079fe3e258c1e3a8c6dec5187d69be15fb5b3b8c594b0"
 }

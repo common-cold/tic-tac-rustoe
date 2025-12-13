@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT\n                    id,\n                    email,\n                    username,\n                    password,\n                    created_at\n                FROM USERS\n                WHERE username = $1\n                AND password = $2\n            ",
+  "query": "\n                SELECT\n                    id,\n                    email,\n                    username,\n                    password,\n                    created_at\n                FROM USERS\n                WHERE ($1::uuid IS NULL OR id     = $1)\n                AND ($2::text IS NULL OR username = $2)\n                AND ($3::text IS NULL OR password = $3)\n            ",
   "describe": {
     "columns": [
       {
@@ -31,6 +31,7 @@
     ],
     "parameters": {
       "Left": [
+        "Uuid",
         "Text",
         "Text"
       ]
@@ -43,5 +44,5 @@
       false
     ]
   },
-  "hash": "15802fb78cb62f68f6eb456086cbab93cd5f8e5ad07fb1f9af9f493f698f2132"
+  "hash": "49477d3c893b1341c0bf3ee10a357a291045d1a6137e08687560b5c035c66d98"
 }

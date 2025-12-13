@@ -17,8 +17,8 @@
             }
           }
         },
-        "Int2",
-        "Int2",
+        "Jsonb",
+        "Jsonb",
         "Uuid"
       ]
     },

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE ($1::room_status IS NULL OR status = $1::room_status)\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                INSERT INTO ROOMS (\n                    room_name,\n                    room_code,\n                    status,\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators\n                )\n                VALUES ($1, $2, $3, $4, $5, $6, $7)\n                RETURNING \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<HashSet<Uuid>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<HashSet<Uuid>>\",\n                    max_spectators,\n                    created_at\n            ",
   "describe": {
     "columns": [
       {
@@ -36,8 +36,8 @@
       },
       {
         "ordinal": 4,
-        "name": "players",
-        "type_info": "Int2"
+        "name": "players!: Json<HashSet<Uuid>>",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 5,
@@ -46,8 +46,8 @@
       },
       {
         "ordinal": 6,
-        "name": "spectators",
-        "type_info": "Int2"
+        "name": "spectators!: Json<HashSet<Uuid>>",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 7,
@@ -62,6 +62,8 @@
     ],
     "parameters": {
       "Left": [
+        "Text",
+        "Text",
         {
           "Custom": {
             "name": "room_status",
@@ -73,7 +75,11 @@
               ]
             }
           }
-        }
+        },
+        "Jsonb",
+        "Int2",
+        "Jsonb",
+        "Int2"
       ]
     },
     "nullable": [
@@ -88,5 +94,5 @@
       false
     ]
   },
-  "hash": "a49ff75558521796116a59a3fa7d40ab68c9dc1a98fd44e8463c7d7e8777a5e6"
+  "hash": "3c2f8932ef5445f5a7526476de67a8de0f36cafc56c68f172a1d75ddf2b9ff9c"
 }

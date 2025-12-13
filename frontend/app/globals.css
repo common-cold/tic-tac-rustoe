@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0e13;
+  --foreground: #ffffff;
+  --font-satoshi: var(--font-satoshi);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-satoshi), sans-serif;
+}
+
+.primaryTextColor {
+  color: #c7f284;
+}
+
+.primaryButton {
+  color: #2e3c2c;
+  background-color: #c7f284;
+}
+
+.secondaryBg {
+  background-color: #0d151e;
+}
+
+.secondaryButton {
+  color: #c7f284;
+  background-color: #1e261e;
+}
+
+.thinBorder {
+  border-width: 2px;
+  border-color: #151f28;
+  border-radius: 20px;
+}
+
+.inputStyle {
+  height: 30px;
+  border-radius: 5px;
+  border: 0.5px solid #525456;
+  padding-inline: 10px;
+  padding-block: 8px;
+  background-color: #2d2e2e;
+}

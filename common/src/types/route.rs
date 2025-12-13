@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use sqlx::types::Json;
+use uuid::Uuid;
 
-use crate::types::{Role, RoomStatus};
+use crate::types::{Move, MoveType, Player, Role, RoomStatus};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Signup {
@@ -24,8 +26,21 @@ pub struct CreateRoom {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CreateGameArgs {
+    #[serde(rename = "roomId")]
+    pub room_id: Uuid,
+    pub players: Vec<Uuid>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetRooms {
     pub status: Option<RoomStatus>,
+    pub page: Option<usize>,
+    pub limit: Option<usize>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GetGames {
     pub page: Option<usize>,
     pub limit: Option<usize>
 }
@@ -35,4 +50,17 @@ pub struct JoinRoom {
     #[serde(rename = "roomCode")]
     pub room_code: String,
     pub role: Role
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UpdateGame {
+    #[serde(rename = "gameId")]
+    pub game_id: Uuid,
+    pub players: Option<Json<Vec<Player>>>,
+    pub state: Option<Json<Vec<Vec<Option<MoveType>>>>>,
+    pub moves: Option<Json<Vec<Move>>>,
+    pub winner: Option<Option<Uuid>>,
+
+    #[serde(rename = "isCompleted")]
+    pub is_completed: Option<bool>
 }

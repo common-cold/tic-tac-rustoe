@@ -3,11 +3,12 @@ use common::{auth::JwtClaims, types::{CreateRoom, GetRooms, JoinRoom, Role, Room
 use db::Database;
 use serde_json::json;
 use page_hunter::paginate_records;
+use uuid::Uuid;
 
 
 
 #[post("/room")]
-pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>) -> HttpResponse {
+pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>, claims: JwtClaims) -> HttpResponse {
     if body.max_spectators > 8 {
         return HttpResponse::Conflict().json(json!({
             "error": "Cannot have more than 8 spctators"
@@ -15,11 +16,8 @@ pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>) -
     }
 
     let database = db.get_ref();
-    match database.create_room(&body.room_name, &body.max_spectators).await {
-        Ok(room) => HttpResponse::Ok().json(json!({
-            "message": "Successfully Created Room",
-            "userId": room.id
-        })),
+    match database.create_room(claims.0.sub, &body.room_name, &body.max_spectators).await {
+        Ok(room) => HttpResponse::Ok().json(room),
         Err(e) => HttpResponse::Conflict().json(json!({
             "error": e.to_string()
         }))
@@ -27,10 +25,9 @@ pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>) -
 }
 
 #[get("/rooms")]
-pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRooms>, claims: JwtClaims) -> HttpResponse {
-    println!("{:?}", claims);   
+pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRooms>, claims: JwtClaims) -> HttpResponse {  
     let database = db.get_ref();
-    match database.get_rooms(body.status.clone()).await {
+    match database.get_all_rooms(body.status.clone()).await {
         Ok(rooms) => {
             let mut page: usize = 0;
             let mut limit: usize = 2;
@@ -57,7 +54,7 @@ pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRoo
 
 
 #[post("/room/join")]
-pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>) -> HttpResponse {
+pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claims: JwtClaims) -> HttpResponse {
     let database = db.get_ref();
     match database.get_room_by_code(&body.room_code).await {
         Ok(mut room) => {
@@ -69,7 +66,7 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>) -> Ht
 
             match body.role {
                 Role::Player => {
-                    room.players += 1;
+                    room.players.insert(claims.0.sub);
                     if let Err(e) = database.update_room(&room).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
@@ -79,7 +76,46 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>) -> Ht
                     //handle user side changes 
                 }
                 Role::Spectator => {
-                    room.spectators += 1;
+                    room.spectators.insert(claims.0.sub);
+                    if let Err(e) = database.update_room(&room).await {
+                        return HttpResponse::Conflict().json(json!({
+                            "error": e.to_string()
+                        }));
+                    }
+
+                    //handle user side changes 
+                }
+            };
+
+            return HttpResponse::Ok().json(room);
+
+        }
+
+        Err(e) => HttpResponse::Conflict().json(json!({
+            "error": e.to_string()
+        }))
+    }
+}
+
+
+#[post("/room/leave")]
+pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claims: JwtClaims) -> HttpResponse {
+    let database = db.get_ref();
+    match database.get_room_by_code(&body.room_code).await {
+        Ok(mut room) => {
+            match body.role {
+                Role::Player => {
+                    room.players.remove(&claims.0.sub);
+                    if let Err(e) = database.update_room(&room).await {
+                        return HttpResponse::Conflict().json(json!({
+                            "error": e.to_string()
+                        }));
+                    }
+                    
+                    //handle user side changes 
+                }
+                Role::Spectator => {
+                    room.spectators.remove(&claims.0.sub);
                     if let Err(e) = database.update_room(&room).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
@@ -91,7 +127,7 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>) -> Ht
             };
 
             return HttpResponse::Ok().json(json!({
-                "message": "Succesfully joined the room"
+                "message": "Succesfully left the room"
             }));
 
         }
@@ -100,19 +136,37 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>) -> Ht
             "error": e.to_string()
         }))
     }
-} 
+}
+
+
+#[get("/room/{id}")]
+pub async fn get_room(db: web::Data<Database>, path: web::Path<Uuid>) -> HttpResponse {
+    let room_id = path.into_inner();
+    let database = db.get_ref();
+
+    match database.get_room_by_id(&room_id).await {
+        Ok(room) => {
+            return HttpResponse::Ok().json(room);
+        }
+        Err(e) => {
+            return HttpResponse::Conflict().json(json!({
+                "error": e.to_string()
+            }));
+        }
+    }
+}
 
 
 
 pub fn check_role_capacity(role: &Role, room: &Room) -> anyhow::Result<()> {
     match role {
         Role::Player => {
-            if room.players >= room.max_players {
+            if room.players.len() >= room.max_players as usize {
                 return Err(anyhow::anyhow!("Max Player capacity reached"));
             }
         }
         Role::Spectator => {
-            if room.spectators >= room.max_spectators {
+            if room.spectators.len() >= room.max_spectators as usize {
                 return Err(anyhow::anyhow!("Max Spectator capacity reached"));
             }
         }

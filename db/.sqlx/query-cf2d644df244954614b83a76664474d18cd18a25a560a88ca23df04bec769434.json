@@ -1,0 +1,75 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO GAMES (\n                    room_id,\n                    players,\n                    state,\n                    moves,\n                    winner,\n                    is_completed\n                )\n                VALUES ($1, $2, $3, $4, $5, $6)\n                RETURNING \n                    id,\n                    room_id,\n                    players as \"players!: Json<Vec<Player>>\",\n                    state as \"state!: Json<Vec<Vec<Option<MoveType>>>>\",\n                    moves as \"moves!: Json<Vec<Move>>\",\n                    winner,\n                    is_completed,\n                    created_at,\n                    completed_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "room_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "players!: Json<Vec<Player>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "state!: Json<Vec<Vec<Option<MoveType>>>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "moves!: Json<Vec<Move>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "winner",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_completed",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "completed_at",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb",
+        "Jsonb",
+        "Jsonb",
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "cf2d644df244954614b83a76664474d18cd18a25a560a88ca23df04bec769434"
+}

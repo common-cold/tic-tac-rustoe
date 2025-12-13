@@ -1,30 +1,51 @@
-use std::{collections::HashSet, sync::{Arc, Mutex}};
+use std::{sync::{Arc, Mutex}};
 
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Result, get, rt, web::{self, Payload}};
 use actix_ws::Message;
-use common::{auth::JwtClaims, types::{LogArgs, WebSocketMessage, WebSocketResponse}};
+use common::{auth::JwtClaims, types::{Role, WebSocketMessage}};
+use db::Database;
+use sqlx::types::Json;
 use tokio::sync::mpsc;
 
-use crate::{room_manager::{RoomManager, User}, utils::prepare_log};
-use common::types::ResponseData::*;
+use crate::{handlers::{create_room_handler, join_room_handler, leave_room_handler}, room_manager::{RoomManager, User}, utils::prepare_log};
 
 pub mod room_manager;
 pub mod utils;
+pub mod handlers;
 
 type MutRoomManager = Arc<Mutex<RoomManager>>;
 
-#[get("/ws")]
-pub async fn ws_handler(request: HttpRequest, body: Payload, room_manager: web::Data<MutRoomManager>, claims: JwtClaims) -> Result<HttpResponse> {
-    let (response, mut session, mut stream) =  actix_ws::handle(&request, body)?;
+#[derive(Clone)]
+pub struct WsState {
+    pub database: Database,
+    pub room_manager: MutRoomManager
+}
 
+#[get("/ws")]
+pub async fn ws_handler(request: HttpRequest, body: Payload, state: web::Data<WsState>, claims: JwtClaims) -> Result<HttpResponse> {
+    let (response, mut session, mut stream) =  actix_ws::handle(&request, body)?;
+    let room_manager = state.room_manager.clone();
+    let database = state.database.clone();
+    
     let (tx, mut rx) = mpsc::channel(32);
 
     let user_id = claims.0.sub;
+
+    let user = match database.get_user(Some(&user_id), None, None).await {
+        Ok(user) => user,
+        Err(_) => {
+            let log = prepare_log(String::from("Error gettign user from db"), true);
+            let _ = session.text(log).await;
+            panic!();
+        }
+    };
+
     room_manager
         .lock()
         .unwrap()
         .clients
         .insert(user_id, User {
+            username: user.username,
             tx: tx
         });
 
@@ -39,39 +60,29 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, room_manager: web::
 
                 Message::Text(data) => {
                     if let Ok(websocket_message) = serde_json::from_slice::<WebSocketMessage>(&data.as_bytes()) {
+    
                         match websocket_message {
                             WebSocketMessage::CreateRoom(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                let mut set = HashSet::new();
-                                set.insert(user_id);
-                                room_manager.rooms.insert(args.room_id, set);
-                                let log = prepare_log(String::from("Room Created Successfully"), false);
-                                let _ = session.text(log).await;
-                                
+                                create_room_handler(&mut room_manager, &mut session, args, user_id).await;
                             }   
-                            WebSocketMessage::JoinRoom(args) => {
+
+                            WebSocketMessage::CreateGame(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                if let None = room_manager.rooms.get(&args.room_id) {
-                                    let log = prepare_log(String::from("Room doesn't exist"), true);
+                                if let Err(e) = room_manager.create_game(args) {
+                                    let log = prepare_log(format!("Error in Creating in-memory game: {:?}", e.to_string()), true);
                                     let _ = session.text(log).await;
-                                    continue;
                                 }
-                                //make use of args.role
-                                room_manager.rooms.get_mut(&args.room_id).unwrap().insert(user_id);
-                                let log = prepare_log(String::from("Room Joined Successfully"), false);
-                                let _ = session.text(log).await;
                             }
 
-                            WebSocketMessage::LeaveRoom(room_id) => {
+                            WebSocketMessage::JoinRoom(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                if let None = room_manager.rooms.get(&room_id) {
-                                    let log = prepare_log(String::from("Room doesn't exist"), true);
-                                    let _ = session.text(log).await;
-                                    continue;
-                                }
-                                room_manager.rooms.get_mut(&room_id).unwrap().remove(&user_id);
-                                let log = prepare_log(String::from("Room Left Successfully"), false);
-                                let _ = session.text(log).await;
+                                join_room_handler(&mut room_manager, &mut session, args, user_id).await;
+                            }
+
+                            WebSocketMessage::LeaveRoom(args) => {
+                                let mut room_manager = room_manager.lock().unwrap();
+                                leave_room_handler(&mut room_manager, &mut session, args, user_id).await;
                             }
 
                             WebSocketMessage::SendMessage(args) => {
@@ -81,13 +92,54 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, room_manager: web::
                                     let _ = session.text(log).await;
                                 }
                             }
+
+                            WebSocketMessage::MoveUpdate(args) => {
+                                let mut room_manager = room_manager.lock().unwrap();
+                                {
+                                    if let Err(e) = room_manager.update_game(args) {
+                                        let log = prepare_log(format!("Error in Move Update: {:?}", e.to_string()), true);
+                                        let _ = session.text(log).await;
+                                        return;
+                                    }
+                                }
+                                let room = room_manager.rooms.get(&args.room_id).unwrap();
+                                let game = room.game.as_ref().unwrap();
+                                let mut session_clone = session.clone();
+                                // let has_won = room_manager.check_winner(&args.room_id, args.move_type);
+                                // if has_won {
+                                    
+                                // }
+                                tokio::join!(
+                                    async {
+                                        if let Err(e) = room_manager.broadcast_move(args).await {
+                                            let log = prepare_log(format!("Error in broadcasting move update: {:?}", e.to_string()), true);
+                                            let _ = session.text(log).await;
+                                        }    
+                                    },
+                                    async {
+                                        if let Err(e) = database.update_game(&args.game_id, None, Some(Json(game.state.clone())), Some(Json(game.moves.clone())), None, None).await {
+                                            let log = prepare_log(format!("Error in Db move update: {:?}", e.to_string()), true);
+                                            let _ = session_clone.text(log).await;
+                                        }
+                                    }
+                                    
+                                );
+                            }
+
+                        }
+
+                        println!("--------------------------------------");
+                        {
+                            let room_manager = room_manager.lock().unwrap();
+                            println!("Rooms = {:?}", room_manager.rooms);
                         }
                         
                     }
                 }
 
                 _ => {
-
+                    let log = prepare_log(format!("Invalid Command"), true);
+                    let _ = session.text(log).await;
                 }
             }
         }
@@ -109,15 +161,22 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, room_manager: web::
 pub async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
 
+    let database = Database::new().await.unwrap();
+
     let room_manager = RoomManager::new();
     let mut_room_manager = Arc::new(Mutex::new(room_manager));
 
+    let state = WsState {
+        database: database,
+        room_manager: mut_room_manager
+    };
+
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(mut_room_manager.clone()))
+            .app_data(web::Data::new(state.clone()))
             .service(ws_handler)
     })
-    .bind(("127.0.0.1", 3000))?
+    .bind(("127.0.0.1", 8081))?
     .run()
     .await?;
 
