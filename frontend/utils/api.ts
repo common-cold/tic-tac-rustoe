@@ -1,4 +1,4 @@
-import { CreateGame, CreateRoom, JoinRoom, SignIn, SignUp } from "@/types/route";
+import { CreateGame, CreateRoom, GetGame, JoinRoom, SignIn, SignUp } from "@/types/route";
 import axios from "axios";
 
 
@@ -86,6 +86,7 @@ export async function getRoom(roomId: string) {
 }
 
 export async function createGame(body: CreateGame) {
+    console.log(body);
     try {
         const token = localStorage.getItem("token");
         const response = await axios.post("http://localhost:8080/game", body, {
@@ -98,4 +99,16 @@ export async function createGame(body: CreateGame) {
     } catch (e) {
         return null
     }  
+}
+
+export async function getGame(body: GetGame) {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await axios.post("http://localhost:8080/game/fetch", body, {
+            validateStatus: () => true
+        });
+        return response;
+    } catch (e) {
+        return null
+    } 
 }

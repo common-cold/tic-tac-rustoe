@@ -1,5 +1,5 @@
 import { showErrorToast, showSuccessToast } from "@/components/Homepage";
-import { Room } from "@/types/db";
+import { Game, LocalGame, MoveType, Room, User } from "@/types/db";
 import { LogArgs, WebSocketResponseWrapper } from "@/types/ws";
 import { atom } from "jotai";
 
@@ -18,6 +18,7 @@ export const connectSocketAtom = atom(null, (get, set) => {
     websocket.onmessage = (data) => {
         let responseWrapper: WebSocketResponseWrapper = JSON.parse(data.data) ;
         let response = responseWrapper.data;
+        console.log(response);
         if (response.type == 'Log') {
             let log: LogArgs = response.payload;
             console.log(log);
@@ -37,3 +38,9 @@ export const connectSocketAtom = atom(null, (get, set) => {
 });
 
 export const roomAtom = atom<Room | null>(null);
+
+export const gameAtom = atom<LocalGame | null>(null);
+
+export const playerMoveTypeAtom = atom<MoveType | null>(null);
+
+export const userAtom = atom<User | null>(null);

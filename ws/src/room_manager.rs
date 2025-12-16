@@ -108,8 +108,10 @@ impl RoomManager {
     }
 
     pub async fn broadcast_move(&self, args: MoveUpdateArgs) -> anyhow::Result<()> {
-        if let Some(room_members) = self.rooms.get(&args.room_id) {
-            let all_members: HashSet<Uuid>  = room_members.players.union(&room_members.spectators).copied().collect();
+        if let Some(room) = self.rooms.get(&args.room_id) {
+            let game = room.game.as_ref().unwrap();
+            let is_x_turn = game.moves.len() % 2 == 0;
+            let all_members: HashSet<Uuid>  = room.players.union(&room.spectators).copied().collect();
             for user_id in all_members {
                 if let Some(client) = self.clients.get(&user_id) {
                     let response = WebSocketResponse {
@@ -118,7 +120,8 @@ impl RoomManager {
                             room_id: args.room_id,
                             move_type: args.move_type,
                             x_pos: args.x_pos,
-                            y_pos: args.y_pos
+                            y_pos: args.y_pos,
+                            is_x_turn: Some(is_x_turn)
                         })
                     };
                     let str = serde_json::to_string(&response).unwrap();

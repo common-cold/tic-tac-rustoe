@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@types/axios": "^0.9.36",
+    "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.13.2",
     "jotai": "^2.15.2",
+    "jsonwebtoken": "^9.0.3",
     "next": "16.0.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",

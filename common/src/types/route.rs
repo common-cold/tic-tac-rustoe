@@ -40,6 +40,14 @@ pub struct GetRooms {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GetGame {
+    #[serde(rename = "gameId")]
+    pub game_id: Option<Uuid>,
+    #[serde(rename = "roomId")]
+    pub room_id: Option<Uuid>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetGames {
     pub page: Option<usize>,
     pub limit: Option<usize>

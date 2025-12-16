@@ -1,13 +1,11 @@
 import { CreateRoom } from "./CreateRoom"
 import { JoinRoom } from "./JoinRoom"
-import { CreateGame } from "./CreateGame"
 
 
 export function GameMenu() {
 
-    return <div className="thinBorder flex flex-col items-center w-1/4 gap-5 py-4 px-5">
+    return <div className="flex flex-row justify-between items-center gap-5 py-4 px-5 w-full">
         <CreateRoom/>
         <JoinRoom/>
-        <CreateGame/>
     </div>
 }

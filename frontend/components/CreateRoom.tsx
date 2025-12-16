@@ -7,7 +7,7 @@ import { createRoom } from "@/utils/api";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 import { LabelInput, LabelInputNumber } from "./LabelInput";
-import { Dropdown } from "./Dropdown";
+import { useRouter } from "next/navigation";
 
 export function CreateRoom() {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -15,6 +15,7 @@ export function CreateRoom() {
     const [maxSpectators, setMaxSpectators] = useState<Number>(8);
     const ws = useAtomValue(wsAtom);
     const setRoom = useSetAtom(roomAtom);
+    const router = useRouter();
 
     console.log(isExpanded);
 
@@ -59,18 +60,20 @@ export function CreateRoom() {
         console.log(JSON.stringify(msg));
 
         ws?.send(JSON.stringify(msg));
+
+        router.push(`/room/${room.id}`);
         
     }
 
 
     return <div className="w-full flex justify-center relative">
-        <button className="rounded-[7px] w-3/4 h-[50px] primaryButton font-bold"
+        <button className="rounded-[7px] w-3/5 h-[50px] primaryButton font-bold"
             onClick={() => setIsExpanded(prev => !prev)}>
             Create Room
         </button>
         {
             isExpanded &&
-            <div className="flex flex-col gap-5 secondaryBg w-3/4 px-2 py-5 rounded-[7px] items-center absolute top-[120%] left-1/2 -translate-x-1/2 z-10">
+            <div className="flex flex-col gap-5 secondaryBg w-3/5 px-2 py-5 rounded-[7px] items-center absolute top-[120%] left-1/2 -translate-x-1/2 z-10">
                 <LabelInput label="Room Name" setter={setRoomName}/>
                 <LabelInputNumber label="Max Spectators" setter={setMaxSpectators}/>
                 <button className="rounded-[7px] w-2/4 h-[30px] mt-3 secondaryButton font-bold"

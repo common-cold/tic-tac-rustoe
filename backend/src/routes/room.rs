@@ -1,5 +1,5 @@
 use actix_web::{HttpResponse, get, post, web};
-use common::{auth::JwtClaims, types::{CreateRoom, GetRooms, JoinRoom, Role, Room}};
+use common::{auth::JwtClaims, types::{CreateRoom, GetRooms, JoinRoom, Player, Role, Room, Spectator}};
 use db::Database;
 use serde_json::json;
 use page_hunter::paginate_records;
@@ -16,7 +16,7 @@ pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>, c
     }
 
     let database = db.get_ref();
-    match database.create_room(claims.0.sub, &body.room_name, &body.max_spectators).await {
+    match database.create_room(claims.0.sub, claims.0.username, &body.room_name, &body.max_spectators).await {
         Ok(room) => HttpResponse::Ok().json(room),
         Err(e) => HttpResponse::Conflict().json(json!({
             "error": e.to_string()
@@ -58,6 +58,7 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
     let database = db.get_ref();
     match database.get_room_by_code(&body.room_code).await {
         Ok(mut room) => {
+            let room_clone = room.clone();
             if let Err(e) = check_role_capacity(&body.role, &room) {
                 return HttpResponse::Conflict().json(json!({
                     "error": e.to_string()
@@ -66,8 +67,13 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
 
             match body.role {
                 Role::Player => {
-                    room.players.insert(claims.0.sub);
-                    if let Err(e) = database.update_room(&room).await {
+                    room.players.push(Player {
+                        id: claims.0.sub,
+                        username: claims.0.username,
+                        symbol: None
+                    });
+                    if let Err(e) = database.update_room(&room.id, Some(room.status),
+                    Some(room.players), Some(room.spectators)).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -76,8 +82,12 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
                     //handle user side changes 
                 }
                 Role::Spectator => {
-                    room.spectators.insert(claims.0.sub);
-                    if let Err(e) = database.update_room(&room).await {
+                    room.spectators.push(Spectator {
+                        id: claims.0.sub,
+                        username: claims.0.username
+                    });
+                    if let Err(e) = database.update_room(&room.id, Some(room.status),
+                    Some(room.players), Some(room.spectators)).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -87,7 +97,7 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
                 }
             };
 
-            return HttpResponse::Ok().json(room);
+            return HttpResponse::Ok().json(room_clone);
 
         }
 
@@ -105,8 +115,9 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
         Ok(mut room) => {
             match body.role {
                 Role::Player => {
-                    room.players.remove(&claims.0.sub);
-                    if let Err(e) = database.update_room(&room).await {
+                    room.players.retain(|s| s.id != claims.0.sub);
+                    if let Err(e) = database.update_room(&room.id, Some(room.status),
+                    Some(room.players), Some(room.spectators)).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -115,8 +126,9 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
                     //handle user side changes 
                 }
                 Role::Spectator => {
-                    room.spectators.remove(&claims.0.sub);
-                    if let Err(e) = database.update_room(&room).await {
+                    room.spectators.retain(|s| s.id != claims.0.sub);
+                    if let Err(e) = database.update_room(&room.id, Some(room.status),
+                    Some(room.players), Some(room.spectators)).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));

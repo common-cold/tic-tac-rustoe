@@ -31,21 +31,12 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, state: web::Data<Ws
 
     let user_id = claims.0.sub;
 
-    let user = match database.get_user(Some(&user_id), None, None).await {
-        Ok(user) => user,
-        Err(_) => {
-            let log = prepare_log(String::from("Error gettign user from db"), true);
-            let _ = session.text(log).await;
-            panic!();
-        }
-    };
-
     room_manager
         .lock()
         .unwrap()
         .clients
         .insert(user_id, User {
-            username: user.username,
+            username: claims.0.username,
             tx: tx
         });
 

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<HashSet<Uuid>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<HashSet<Uuid>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE ($1::room_status IS NULL OR status = $1::room_status)\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<Vec<Player>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<Vec<Spectator>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE ($1::room_status IS NULL OR status = $1::room_status)\n                ORDER BY created_at DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -36,7 +36,7 @@
       },
       {
         "ordinal": 4,
-        "name": "players!: Json<HashSet<Uuid>>",
+        "name": "players!: Json<Vec<Player>>",
         "type_info": "Jsonb"
       },
       {
@@ -46,7 +46,7 @@
       },
       {
         "ordinal": 6,
-        "name": "spectators!: Json<HashSet<Uuid>>",
+        "name": "spectators!: Json<Vec<Spectator>>",
         "type_info": "Jsonb"
       },
       {
@@ -88,5 +88,5 @@
       false
     ]
   },
-  "hash": "fc0f311bb9c30cec5358f7d39edabcef40defe55d1ab4818458928c1113d2949"
+  "hash": "a7b2c994b0a9e7d41fb30d7b3d3918e619f1a58196a91b2f505f17a0654174f7"
 }

@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n               SELECT\n                    id,\n                    room_id,\n                    players as \"players!: Json<Vec<Player>>\",\n                    state as \"state!: Json<Vec<Vec<Option<MoveType>>>>\",\n                    moves as \"moves!: Json<Vec<Move>>\",\n                    winner,\n                    is_completed,\n                    created_at,\n                    completed_at\n                FROM GAMES\n                WHERE ($1::uuid IS NULL OR id     = $1)\n                AND ($2::uuid IS NULL OR room_id = $2)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "room_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "players!: Json<Vec<Player>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "state!: Json<Vec<Vec<Option<MoveType>>>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "moves!: Json<Vec<Move>>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "winner",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_completed",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "completed_at",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "3fc0847341fc1cf9715709667b89852c76641025651c0f649f7327eb0222ad73"
+}

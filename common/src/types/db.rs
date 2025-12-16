@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use uuid::Uuid;
@@ -31,9 +29,9 @@ pub struct Room {
     pub room_name: String,
     pub room_code: String,
     pub status: RoomStatus,
-    pub players: Json<HashSet<Uuid>>,
+    pub players: Json<Vec<Player>>,
     pub max_players: i16,
-    pub spectators: Json<HashSet<Uuid>>,
+    pub spectators: Json<Vec<Spectator>>,
     pub max_spectators: i16,
     pub created_at: i64
 }
@@ -63,7 +61,13 @@ pub struct Game {
 pub struct Player {
     pub id: Uuid,
     pub username: String,
-    pub symbol: MoveType
+    pub symbol: Option<MoveType>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Spectator {
+    pub id: Uuid,
+    pub username: String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]

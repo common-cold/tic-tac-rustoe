@@ -23,5 +23,10 @@ export interface JoinRoom {
 
 export interface CreateGame {
     roomId: string,
-    players: Set<string>
+    players: string[]
+}
+
+export interface GetGame {
+    gameId?: string,
+    roomId: string
 }

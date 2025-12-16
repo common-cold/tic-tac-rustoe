@@ -79,7 +79,10 @@ pub struct MoveUpdateArgs {
     pub x_pos: u8,
 
     #[serde(rename="yPos")]
-    pub y_pos: u8
+    pub y_pos: u8,
+
+    #[serde(rename="isXTurn")]
+    pub is_x_turn: Option<bool>
 }
 
 #[derive(Debug, Serialize, Deserialize)]

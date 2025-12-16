@@ -6,6 +6,8 @@ export type WebSocketMessage =
     | { CreateGame: CreateInMemoryGameArgs }
     | { JoinRoom: JoinRoomArgs }
     | { LeaveRoom: JoinRoomArgs }
+    | { SendMessage: SendMessageArgs }
+    | { MoveUpdate: MoveUpdateArgs }
 
 export type CreateRoomArgs = {
     room_id: string
@@ -24,7 +26,19 @@ export type JoinRoomArgs = {
     role: Role
 }
 
+export type SendMessageArgs = {
+    room_id: string,
+    message: string
+}
 
+export type MoveUpdateArgs = {
+    gameId: string,
+    roomId: string,
+    moveType: MoveType,
+    xPos: number,
+    yPos: number,
+    isXTurn?: boolean
+}
 
 //WS Response types
 export type WebSocketResponseType = "MoveUpdate" | "Log" | "ChatUpdate";

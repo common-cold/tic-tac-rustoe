@@ -1,8 +1,10 @@
 use actix_web::{HttpResponse, get, post, put, web};
-use common::types::{CreateGameArgs, GetGames, MoveType, Player, UpdateGame};
+use common::types::{CreateGameArgs, GetGame, GetGames, MoveType, Player, UpdateGame};
 use db::Database;
 use page_hunter::paginate_records;
+use rand::{rng, seq::SliceRandom};
 use serde_json::json;
+use sqlx::types::Json;
 
 
 #[post("/game")]
@@ -10,23 +12,27 @@ pub async fn create_game(db: web::Data<Database>, body: web::Json<CreateGameArgs
     let database: &Database = db.get_ref();
 
     let mut players = Vec::new();
+    let mut moves = vec![MoveType::O, MoveType::X];
+    moves.shuffle(&mut rng());
+
     for (index, user_id) in body.players.iter().enumerate() {
-        let move_type;
-        if index == 0 {
-            move_type = MoveType::O;
-        } else {
-            move_type = MoveType::X;
-        }
         let user = database.get_user(Some(&user_id), None, None).await.unwrap();
         players.push(Player {
             id: user.id,
             username: user.username,
-            symbol: move_type
+            symbol: Some(moves[index])
         });
     }
-    match database.create_game(&body.room_id, players).await {
+    match database.create_game(&body.room_id, players.clone()).await {
         Ok(game) => {
-            return HttpResponse::Ok().json(game);
+            match database.update_room(&body.room_id, None, Some(Json(players.clone())), None).await {
+                Ok(()) => return HttpResponse::Ok().json(game),
+
+                Err(e) => HttpResponse::Conflict().json(json!({
+                    "error": e.to_string()
+                }))
+            }
+            
         }
         Err(e) => HttpResponse::Conflict().json(json!({
             "error": e.to_string()
@@ -34,6 +40,21 @@ pub async fn create_game(db: web::Data<Database>, body: web::Json<CreateGameArgs
     }
 }
 
+
+#[post("/game/fetch")]
+pub async fn get_game(db: web::Data<Database>, body: web::Json<GetGame>) -> HttpResponse {
+    let databse = db.get_ref();
+    match databse.get_game(body.game_id, body.room_id).await {
+        Ok(game) => {
+            HttpResponse::Ok().json(game)
+        }
+        Err(e) => {
+            HttpResponse::Conflict().json(json!({
+                "error": e.to_string()
+            }))
+        }
+    }
+}
 
 #[get("/games")]
 pub async fn get_games_paginated(db: web::Data<Database>, body: web::Json<GetGames>) -> HttpResponse {

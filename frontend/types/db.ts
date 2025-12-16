@@ -10,15 +10,20 @@ export type Role =
 export type MoveType =
     | "O"
     | "X"
+
+export interface User {
+    id: string,
+    username: string
+}   
     
 export interface Room {
     id: string,
     room_name: string,
     room_code: string,
     status: RoomStatus,
-    players: Set<string>,
+    players: Player[],
     max_players: Number,
-    spectators: Set<string>,
+    spectators: Spectator[],
     max_spectators: Number,
     created_at: Number
 }
@@ -35,11 +40,18 @@ export interface Game {
     completed_at: Number
 }
 
+export interface LocalGame extends Pick<Game, 'id' | 'state' | 'moves' | 'players'> {}
+
 
 export interface Player {
     id: string,
     username: string,
-    symbol: MoveType
+    symbol: MoveType | null
+}
+
+export interface Spectator {
+    id: string,
+    username: string
 }
 
 export interface Move {

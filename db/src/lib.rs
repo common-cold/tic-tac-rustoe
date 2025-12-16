@@ -1,7 +1,7 @@
 use std::{collections::HashSet, env, str::FromStr, vec};
 
 use anyhow::Ok;
-use common::types::{Game, Move, MoveType, Player, Room, RoomStatus, User};
+use common::types::{Game, Move, MoveType, Player, Room, RoomStatus, Spectator, User};
 use dotenv::dotenv;
 use rand::Rng;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions, query_as, types::Json};
@@ -72,11 +72,15 @@ impl Database {
         Ok(db_user)
     }
 
-    pub async fn create_room(&self, user_id: Uuid, room_name: &String, max_spectators: &i16) -> anyhow::Result<Room> {
-        let mut players: Vec<Uuid> = Vec::new();
-        players.push(user_id);
+    pub async fn create_room(&self, user_id: Uuid, username: String, room_name: &String, max_spectators: &i16) -> anyhow::Result<Room> {
+        let mut players: Vec<Player> = Vec::new();
+        players.push(Player {
+            id: user_id,
+            username: username,
+            symbol: None
+        });
 
-        let spectators: Vec<Uuid> = Vec::new();
+        let spectators: Vec<Spectator> = Vec::new();
 
         let db_room = sqlx::query_as!(
             Room,
@@ -96,9 +100,9 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
-                    players as "players!: Json<HashSet<Uuid>>",
+                    players as "players!: Json<Vec<Player>>",
                     max_players,
-                    spectators as "spectators!: Json<HashSet<Uuid>>",
+                    spectators as "spectators!: Json<Vec<Spectator>>",
                     max_spectators,
                     created_at
             "#,
@@ -126,9 +130,9 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
-                    players as "players!: Json<HashSet<Uuid>>",
+                    players as "players!: Json<Vec<Player>>",
                     max_players,
-                    spectators as "spectators!: Json<HashSet<Uuid>>",
+                    spectators as "spectators!: Json<Vec<Spectator>>",
                     max_spectators,
                     created_at
                 FROM ROOMS
@@ -152,9 +156,9 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
-                    players as "players!: Json<HashSet<Uuid>>",
+                    players as "players!: Json<Vec<Player>>",
                     max_players,
-                    spectators as "spectators!: Json<HashSet<Uuid>>",
+                    spectators as "spectators!: Json<Vec<Spectator>>",
                     max_spectators,
                     created_at
                 FROM ROOMS
@@ -179,9 +183,9 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
-                    players as "players!: Json<HashSet<Uuid>>",
+                    players as "players!: Json<Vec<Player>>",
                     max_players,
-                    spectators as "spectators!: Json<HashSet<Uuid>>",
+                    spectators as "spectators!: Json<Vec<Spectator>>",
                     max_spectators,
                     created_at
                 FROM ROOMS
@@ -197,20 +201,20 @@ impl Database {
     }
 
 
-    pub async fn update_room(&self, room: &Room) -> anyhow::Result<()> {
+    pub async fn update_room(&self, room_id: &Uuid, status: Option<RoomStatus>, players: Option<Json<Vec<Player>>>, spectators: Option<Json<Vec<Spectator>>>) -> anyhow::Result<()> {
         sqlx::query!(
             "
                 UPDATE ROOMS
                 SET
-                    status =     $1,
-                    players =    $2,
-                    spectators = $3
+                    status = COALESCE($1, status),
+                    players = COALESCE($2, players),
+                    spectators = COALESCE($3, spectators)
                 WHERE id = $4
             ",
-            room.status as RoomStatus,
-            room.players as _,
-            room.spectators as _,
-            room.id
+            status as Option<RoomStatus>,
+            players as Option<Json<Vec<Player>>>,
+            spectators as Option<Json<Vec<Spectator>>>,
+            room_id
         )
         .execute(&self.pool)
         .await?;
@@ -313,6 +317,33 @@ impl Database {
         .await?;
 
         Ok(games)
+    }
+
+    pub async fn get_game(&self, game_id: Option<Uuid>, room_id: Option<Uuid>) -> anyhow::Result<Game> {
+        let db_game = sqlx::query_as!(
+            Game,
+            r#"
+               SELECT
+                    id,
+                    room_id,
+                    players as "players!: Json<Vec<Player>>",
+                    state as "state!: Json<Vec<Vec<Option<MoveType>>>>",
+                    moves as "moves!: Json<Vec<Move>>",
+                    winner,
+                    is_completed,
+                    created_at,
+                    completed_at
+                FROM GAMES
+                WHERE ($1::uuid IS NULL OR id     = $1)
+                AND ($2::uuid IS NULL OR room_id = $2)
+            "#,
+            game_id as Option<Uuid>,
+            room_id as Option<Uuid>
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        
+        Ok(db_game)
     }
 
     pub fn generate_room_code() -> anyhow::Result<String> {

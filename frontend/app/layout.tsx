@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
+import { Appbar } from "@/components/Appbar";
 
 const satoshi = localFont({
   src: [
@@ -47,13 +48,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={satoshi.variable}
+        className={`${satoshi.variable} min-h-screen flex flex-col`}
       >
         <Toaster
           position="top-right"
           reverseOrder={false}
         />
-        {children}
+        <Appbar />
+        <main className="flex-1 min-h-0">
+          {children}
+        </main>
       </body>
     </html>
   );

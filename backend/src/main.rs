@@ -2,7 +2,7 @@ use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 use db::Database;
 
-use crate::routes::{create_game, create_room, get_games_paginated, get_room, get_rooms_paginated, join_room, leave_room, signin, signup};
+use crate::routes::{create_game, create_room, get_game, get_games_paginated, get_room, get_rooms_paginated, join_room, leave_room, signin, signup};
 
 pub mod routes;
 
@@ -30,6 +30,7 @@ pub async fn main() -> anyhow::Result<()> {
             .service(join_room)
             .service(leave_room)
             .service(create_game)
+            .service(get_game)
             .service(get_games_paginated)
     })
     .bind(("127.0.0.1", 8080))?

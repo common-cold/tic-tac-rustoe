@@ -19,7 +19,7 @@ pub async fn signup(db: web::Data<Database>, body: web::Json<Signup>) -> HttpRes
                 }));
             }
 
-            let token = jsonwebtoken::encode(&Header::default(), &Claims::new(user.id), &EncodingKey::from_secret(jwt_secret.unwrap().as_bytes()));
+            let token = jsonwebtoken::encode(&Header::default(), &Claims::new(user.id, user.username), &EncodingKey::from_secret(jwt_secret.unwrap().as_bytes()));
             if token.is_err() {
                 return HttpResponse::InternalServerError().json(json!({
                     "error": "Error creating JWT key"
@@ -48,7 +48,7 @@ pub async fn signin(db: web::Data<Database>, body: web::Json<Signin>) -> HttpRes
                 }));
             }
 
-            let token = jsonwebtoken::encode(&Header::default(), &Claims::new(user.id), &EncodingKey::from_secret(jwt_secret.unwrap().as_bytes()));
+            let token = jsonwebtoken::encode(&Header::default(), &Claims::new(user.id, user.username), &EncodingKey::from_secret(jwt_secret.unwrap().as_bytes()));
             if token.is_err() {
                 return HttpResponse::InternalServerError().json(json!({
                     "error": "Error creating JWT key"

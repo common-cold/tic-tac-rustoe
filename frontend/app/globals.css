@@ -6,12 +6,11 @@
   --font-satoshi: var(--font-satoshi);
 }
 
-html, body, #root {
+html, body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
 
@@ -45,6 +44,12 @@ body {
   border-radius: 20px;
 }
 
+.thinBorderWithLessRadius {
+  border-width: 2px;
+  border-color: #151f28;
+  border-radius: 10px;
+}
+
 .inputStyle {
   height: 30px;
   border-radius: 5px;
@@ -52,4 +57,20 @@ body {
   padding-inline: 10px;
   padding-block: 8px;
   background-color: #2d2e2e;
+}
+
+.boardBorderA {
+  border-right-width: 10px;
+  border-color: #2c3a47 ;
+}
+
+.boardBorderB {
+  border-top-width: 10px;
+  border-right-width: 10px;
+  border-color: #2c3a47 ;
+}
+
+.boardBorderC {
+  border-top-width: 10px;
+  border-color: #2c3a47 ;
 }

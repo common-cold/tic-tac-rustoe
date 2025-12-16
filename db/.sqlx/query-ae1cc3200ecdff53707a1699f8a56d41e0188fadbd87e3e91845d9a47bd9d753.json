@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<HashSet<Uuid>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<HashSet<Uuid>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE (room_code = $1)\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                INSERT INTO ROOMS (\n                    room_name,\n                    room_code,\n                    status,\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators\n                )\n                VALUES ($1, $2, $3, $4, $5, $6, $7)\n                RETURNING \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<Vec<Player>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<Vec<Spectator>>\",\n                    max_spectators,\n                    created_at\n            ",
   "describe": {
     "columns": [
       {
@@ -36,7 +36,7 @@
       },
       {
         "ordinal": 4,
-        "name": "players!: Json<HashSet<Uuid>>",
+        "name": "players!: Json<Vec<Player>>",
         "type_info": "Jsonb"
       },
       {
@@ -46,7 +46,7 @@
       },
       {
         "ordinal": 6,
-        "name": "spectators!: Json<HashSet<Uuid>>",
+        "name": "spectators!: Json<Vec<Spectator>>",
         "type_info": "Jsonb"
       },
       {
@@ -62,7 +62,24 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "room_status",
+            "kind": {
+              "Enum": [
+                "Open",
+                "InProgress",
+                "Closed"
+              ]
+            }
+          }
+        },
+        "Jsonb",
+        "Int2",
+        "Jsonb",
+        "Int2"
       ]
     },
     "nullable": [
@@ -77,5 +94,5 @@
       false
     ]
   },
-  "hash": "57603eb3783d3cbfea5079fe3e258c1e3a8c6dec5187d69be15fb5b3b8c594b0"
+  "hash": "ae1cc3200ecdff53707a1699f8a56d41e0188fadbd87e3e91845d9a47bd9d753"
 }

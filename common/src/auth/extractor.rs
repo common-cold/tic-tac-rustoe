@@ -19,7 +19,7 @@ impl FromRequest for JwtClaims {
 
     type Future = Ready<Result<Self, Self::Error>>;
 
-    fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {;
+    fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
         let query_res=  Query::<WsQuery>::from_query(req.query_string());
         let header_res = req.headers().get("Authorization");
         let mut token_option: Option<String> = None;

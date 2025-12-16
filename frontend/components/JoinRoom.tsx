@@ -1,3 +1,5 @@
+"use client"
+
 import { roomAtom, wsAtom } from "@/store/atoms";
 import { Role, Room } from "@/types/db";
 import { WebSocketMessage } from "@/types/ws";
@@ -6,8 +8,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { LabelInput } from "./LabelInput";
 import { Dropdown } from "./Dropdown";
-import { error } from "console";
-import { showErrorToast } from "./Homepage";
+import { useRouter } from "next/navigation";
 
 
 export function JoinRoom() {
@@ -16,9 +17,7 @@ export function JoinRoom() {
     const [role, setRole] = useState<Role | null>("Spectator");
     let ws = useAtomValue(wsAtom);
     let [room, setRoom] = useAtom(roomAtom);
-
-    console.log("room code: " + roomCode);
-    console.log("role: " + role);
+    const router = useRouter();
 
     const ref = useRef<HTMLDivElement>(null);
 
@@ -85,20 +84,21 @@ export function JoinRoom() {
 
         ws?.send(JSON.stringify(msg));
 
+        router.push(`/room/${dbRoom.id}`);
     }
 
     return <div 
         ref={ref}
         className="w-full flex flex-col gap-5 relative">
         <div className="w-full flex justify-center">
-            <button className="rounded-[7px] w-3/4 h-[50px] primaryButton font-bold"
+            <button className="rounded-[7px] w-3/5 h-[50px] primaryButton font-bold"
                 onClick={() => setIsExpanded(prev => !prev)}>
                 Join Room
             </button>
         </div>
         {
             isExpanded &&
-            <div className="flex flex-col gap-5 secondaryBg w-3/4 px-2 py-5 rounded-[7px] items-center absolute top-[120%] left-1/2 -translate-x-1/2 z-10">
+            <div className="flex flex-col gap-5 secondaryBg w-3/5 px-2 py-5 rounded-[7px] items-center absolute top-[120%] left-1/2 -translate-x-1/2 z-10">
                 <LabelInput label="Room Code" setter={setRoomCode}/>
                 <Dropdown label="Role" defaultOption={role!} options={["Spectator", "Player"]} setter={setRole}/>
                 <button className="rounded-[7px] w-2/4 h-[30px] mt-3 secondaryButton font-bold"
