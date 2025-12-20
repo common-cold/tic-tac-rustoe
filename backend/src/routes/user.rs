@@ -1,7 +1,7 @@
 use std::env;
 
 use actix_web::{HttpResponse, post, web::{self}};
-use common::{auth::Claims, types::{MoveType, Player, Signin, Signup, CreateGameArgs}};
+use common::{auth::Claims, types::{Signin, Signup}};
 use jsonwebtoken::{EncodingKey, Header};
 use serde_json::json;
 use db::Database;

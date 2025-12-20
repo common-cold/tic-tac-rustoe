@@ -2,7 +2,7 @@ use std::{sync::{Arc, Mutex}};
 
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Result, get, rt, web::{self, Payload}};
 use actix_ws::Message;
-use common::{auth::JwtClaims, types::{Role, WebSocketMessage}};
+use common::{auth::JwtClaims, types::{WebSocketMessage}};
 use db::Database;
 use sqlx::types::Json;
 use tokio::sync::mpsc;
@@ -30,13 +30,15 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, state: web::Data<Ws
     let (tx, mut rx) = mpsc::channel(32);
 
     let user_id = claims.0.sub;
+    let username = claims.0.username;
+    let username_clone = username.clone();
 
     room_manager
         .lock()
         .unwrap()
         .clients
         .insert(user_id, User {
-            username: claims.0.username,
+            username: username_clone,
             tx: tx
         });
 
@@ -55,30 +57,34 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, state: web::Data<Ws
                         match websocket_message {
                             WebSocketMessage::CreateRoom(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                create_room_handler(&mut room_manager, &mut session, args, user_id).await;
+                                create_room_handler(&mut room_manager, &mut session, args, user_id, username.clone()).await;
                             }   
 
                             WebSocketMessage::CreateGame(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                if let Err(e) = room_manager.create_game(args) {
+                                if let Err(e) = room_manager.create_game(args.clone()) {
                                     let log = prepare_log(format!("Error in Creating in-memory game: {:?}", e.to_string()), true);
                                     let _ = session.text(log).await;
                                 }
+                                if let Err(e) = room_manager.broadcast_start_game(&args.room_id, &user_id).await {
+                                    let log = prepare_log(format!("Error in sending message: {:?}", e.to_string()), true);
+                                    let _ = session.text(log).await;
+                                };
                             }
 
                             WebSocketMessage::JoinRoom(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                join_room_handler(&mut room_manager, &mut session, args, user_id).await;
+                                join_room_handler(&mut room_manager, &mut session, args, user_id, username.clone()).await;
                             }
 
                             WebSocketMessage::LeaveRoom(args) => {
                                 let mut room_manager = room_manager.lock().unwrap();
-                                leave_room_handler(&mut room_manager, &mut session, args, user_id).await;
+                                leave_room_handler(&mut room_manager, &mut session, args, user_id, &username, database.clone()).await;
                             }
 
                             WebSocketMessage::SendMessage(args) => {
                                 let room_manager = room_manager.lock().unwrap();
-                                if let Err(e) = room_manager.broadcast_message(args).await {
+                                if let Err(e) = room_manager.broadcast_message(args, &user_id).await {
                                     let log = prepare_log(format!("Error in sending message: {:?}", e.to_string()), true);
                                     let _ = session.text(log).await;
                                 }
@@ -96,25 +102,52 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, state: web::Data<Ws
                                 let room = room_manager.rooms.get(&args.room_id).unwrap();
                                 let game = room.game.as_ref().unwrap();
                                 let mut session_clone = session.clone();
-                                // let has_won = room_manager.check_winner(&args.room_id, args.move_type);
-                                // if has_won {
-                                    
-                                // }
+                                
+                                let has_won = room_manager.check_winner(&args.room_id, args.move_type);
+
                                 tokio::join!(
                                     async {
                                         if let Err(e) = room_manager.broadcast_move(args).await {
                                             let log = prepare_log(format!("Error in broadcasting move update: {:?}", e.to_string()), true);
                                             let _ = session.text(log).await;
-                                        }    
+                                        } 
+
+                                        if has_won {
+                                            if let Err(e) = room_manager.broadcast_end_game(&args.room_id, false, Some(username.clone()), None).await {
+                                                let log = prepare_log(format!("Error in broadcasting end game: {:?}", e.to_string()), true);
+                                                let _ = session.text(log).await;
+                                            }
+                                        } else if game.moves.len() == 9 {
+                                            if let Err(e) = room_manager.broadcast_end_game(&args.room_id, true, None, None).await {
+                                                let log = prepare_log(format!("Error in broadcasting end game: {:?}", e.to_string()), true);
+                                                let _ = session.text(log).await;
+                                            }
+                                        }   
                                     },
                                     async {
-                                        if let Err(e) = database.update_game(&args.game_id, None, Some(Json(game.state.clone())), Some(Json(game.moves.clone())), None, None).await {
-                                            let log = prepare_log(format!("Error in Db move update: {:?}", e.to_string()), true);
-                                            let _ = session_clone.text(log).await;
+                                        if has_won {
+                                            if let Err(e) = database.update_game(&args.game_id, None, Some(Json(game.state.clone())), Some(Json(game.moves.clone())), Some(user_id), Some(true), Some(chrono::Utc::now().timestamp())).await {
+                                                let log = prepare_log(format!("Error in Db end game update: {:?}", e.to_string()), true);
+                                                let _ = session_clone.text(log).await;
+                                            }
+                                        } else if game.moves.len() == 9 {
+                                            if let Err(e) = database.update_game(&args.game_id, None, Some(Json(game.state.clone())), Some(Json(game.moves.clone())), None, Some(true), Some(chrono::Utc::now().timestamp())).await {
+                                                let log = prepare_log(format!("Error in Db end game update: {:?}", e.to_string()), true);
+                                                let _ = session_clone.text(log).await;
+                                            }
+                                        } else {
+                                            if let Err(e) = database.update_game(&args.game_id, None, Some(Json(game.state.clone())), Some(Json(game.moves.clone())), None, None, None).await {
+                                                let log = prepare_log(format!("Error in Db move update: {:?}", e.to_string()), true);
+                                                let _ = session_clone.text(log).await;
+                                            }
                                         }
                                     }
-                                    
                                 );
+                                
+                                if has_won || game.moves.len() == 9 {
+                                    let room_mut = room_manager.rooms.get_mut(&args.room_id).unwrap();
+                                    room_mut.game = None;
+                                }
                             }
 
                         }
@@ -154,7 +187,9 @@ pub async fn main() -> Result<()> {
 
     let database = Database::new().await.unwrap();
 
-    let room_manager = RoomManager::new();
+    let room_manager = RoomManager::sync_db(&database).await.unwrap();
+    println!("Rooms = {:?}", room_manager.rooms);
+
     let mut_room_manager = Arc::new(Mutex::new(room_manager));
 
     let state = WsState {

@@ -22,7 +22,7 @@ export function Homepage() {
         } else {
             const obj = jwt.decode(token) as any;
             setUser({
-                id: obj.id,
+                id: obj.sub,
                 username: obj.username
             })
         }

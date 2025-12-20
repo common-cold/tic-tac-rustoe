@@ -1,4 +1,4 @@
-use std::{collections::HashSet, env, str::FromStr, vec};
+use std::{env, vec};
 
 use anyhow::Ok;
 use common::types::{Game, Move, MoveType, Player, Room, RoomStatus, Spectator, User};
@@ -268,10 +268,11 @@ impl Database {
         players: Option<Json<Vec<Player>>>,
         state: Option<Json<Vec<Vec<Option<MoveType>>>>>,
         moves: Option<Json<Vec<Move>>>,
-        winner: Option<Option<Uuid>>,
-        is_completed: Option<bool>
+        winner: Option<Uuid>,
+        is_completed: Option<bool>,
+        completed_at: Option<i64>
     ) -> anyhow::Result<()> {
-        let db_game = query_as!(
+        let _db_game = query_as!(
             Game,
             r#"
                 UPDATE GAMES
@@ -280,14 +281,16 @@ impl Database {
                     state = COALESCE($2, state),
                     moves = COALESCE($3, moves),
                     winner = COALESCE($4, winner),
-                    is_completed = COALESCE($5, is_completed)
-                WHERE id = $6    
+                    is_completed = COALESCE($5, is_completed),
+                    completed_at = COALESCE($6, completed_at)
+                WHERE id = $7    
             "#,
             players as Option<Json<Vec<Player>>>,
             state as Option<Json<Vec<Vec<Option<MoveType>>>>>,
             moves as Option<Json<Vec<Move>>>,
-            winner as Option<Option<Uuid>>,
-            is_completed as  Option<bool>,
+            winner as Option<Uuid>,
+            is_completed as Option<bool>,
+            completed_at as Option<i64>,
             game_id
         ).execute(&self.pool)
         .await?;
@@ -336,6 +339,7 @@ impl Database {
                 FROM GAMES
                 WHERE ($1::uuid IS NULL OR id     = $1)
                 AND ($2::uuid IS NULL OR room_id = $2)
+                AND (is_completed = false)
             "#,
             game_id as Option<Uuid>,
             room_id as Option<Uuid>

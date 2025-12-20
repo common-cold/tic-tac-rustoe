@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { LabelInput } from "./LabelInput";
 import { Dropdown } from "./Dropdown";
 import { useRouter } from "next/navigation";
+import { showErrorToast } from "./Homepage";
 
 
 export function JoinRoom() {
@@ -55,8 +56,8 @@ export function JoinRoom() {
 
         if (!response || response.status != 200) { 
             let data = response?.data as any;
-            console.log(JSON.stringify(response));
             let error = data.error;
+            showErrorToast(error);
             return;
         }
 
@@ -76,7 +77,7 @@ export function JoinRoom() {
         const msg: WebSocketMessage = {
             JoinRoom: {
                 room_id: dbRoom.id,
-                role: role 
+                role: role
             }
         }  
 

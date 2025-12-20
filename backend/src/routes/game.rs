@@ -89,7 +89,7 @@ pub async fn get_games_paginated(db: web::Data<Database>, body: web::Json<GetGam
 #[put("/game")]
 pub async fn update_game(db: web::Data<Database>, body: web::Json<UpdateGame>) -> HttpResponse {
     let databse = db.get_ref();
-    match databse.update_game(&body.game_id, body.players.clone(), body.state.clone(), body.moves.clone(), body.winner, body.is_completed).await {
+    match databse.update_game(&body.game_id, body.players.clone(), body.state.clone(), body.moves.clone(), body.winner, body.is_completed, body.completed_at).await {
         Ok(()) => {
             HttpResponse::Ok().finish()
         }

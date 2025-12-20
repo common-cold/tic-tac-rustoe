@@ -1,4 +1,4 @@
-import { gameAtom, playerMoveTypeAtom, roomAtom, userAtom, wsAtom } from "@/store/atoms"
+import { gameAtom, playerMoveTypeAtom, roomAtom, showGameMenuModalAtom, userAtom, wsAtom } from "@/store/atoms"
 import { Game, Player, Room } from "@/types/db";
 import { createGame, getRoom } from "@/utils/api";
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
@@ -13,6 +13,7 @@ export function CreateGame() {
     let [room, setRoom] = useAtom(roomAtom);
     let ws = useAtomValue(wsAtom);
     let setGame = useSetAtom(gameAtom);
+    const [showGameMenuModal, setShowGameMenuModal] = useAtom(showGameMenuModalAtom);
     let router = useRouter();
 
     async function handleClick() {
@@ -26,9 +27,6 @@ export function CreateGame() {
         }
 
         let playerList = room.players.map(p => p.id);
-        console.log("PLAYERSSSS");
-        console.log(playerList);
-        console.log(new Set(playerList));
 
         let gameResponse = await createGame({
             roomId: room.id,
@@ -96,7 +94,8 @@ export function CreateGame() {
         console.log(JSON.stringify(msg));
 
         ws?.send(JSON.stringify(msg));
-        
+
+        setShowGameMenuModal(false);
     }
     
     return <div>

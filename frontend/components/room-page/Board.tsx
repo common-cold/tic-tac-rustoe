@@ -1,4 +1,4 @@
-import {gameAtom, roomAtom, wsAtom } from "@/store/atoms";
+import {gameAtom, playerMoveTypeAtom, roomAtom, userAtom, wsAtom } from "@/store/atoms";
 import { MoveType } from "@/types/db";
 import { WebSocketMessage } from "@/types/ws";
 import { useAtom, useAtomValue } from "jotai";
@@ -28,7 +28,7 @@ function SymbolComponent({moveType}: SymbolComponentProps) {
 
 function PlayerHeader({hasTurn} : PlayerHeaderProps) {
     const room = useAtomValue(roomAtom);
-    
+
     return <div className="flex flex-row gap-5 justify-center items-baseline">
         <SymbolComponent moveType={room!.players[0].symbol!}/>
         <div 
@@ -66,7 +66,10 @@ export default function Board() {
     const ws = useAtomValue(wsAtom);
     let [game, setGame] = useAtom(gameAtom)
     const room = useAtomValue(roomAtom);
-    let hasTurn;
+    let [playerMoveType, setPlayerMoveType] = useAtom(playerMoveTypeAtom);
+    let [user, setUser] = useAtom(userAtom);
+
+    let hasTurn: string;
     let isXTurn;
     if (game) {
         isXTurn = game!.moves.length % 2 == 0; 
@@ -92,21 +95,12 @@ export default function Board() {
             return;
         }
 
+
+        if (hasTurn != user!.id) {
+            return;
+        }
+
         const move: MoveType = isXTurn! ? "X" : "O";
-
-        game.state[yPos][xPos] = move;
-        game.moves.push({
-            symbol: move,
-            x_pos: xPos,
-            y_pos: yPos,
-            timestamp: new Date().getTime()/1000
-        })
-
-        setGame({
-            ...game,
-            state: game.state,
-            moves: game.moves
-        });
 
         //send move update to ws
         if (!ws) {
@@ -136,10 +130,8 @@ export default function Board() {
 
     function getCellValue(xPos: number, yPos: number) {
         if (!game) {
-            console.log("NO CELL VALUE")
             return null;
         }
-        console.log("VALUE: " + game.state[yPos][xPos]);
         return game.state[yPos][xPos];
     }
 

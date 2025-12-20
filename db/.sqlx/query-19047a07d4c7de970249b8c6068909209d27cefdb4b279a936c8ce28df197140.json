@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n               SELECT\n                    id,\n                    room_id,\n                    players as \"players!: Json<Vec<Player>>\",\n                    state as \"state!: Json<Vec<Vec<Option<MoveType>>>>\",\n                    moves as \"moves!: Json<Vec<Move>>\",\n                    winner,\n                    is_completed,\n                    created_at,\n                    completed_at\n                FROM GAMES\n                WHERE ($1::uuid IS NULL OR id     = $1)\n                AND ($2::uuid IS NULL OR room_id = $2)\n            ",
+  "query": "\n               SELECT\n                    id,\n                    room_id,\n                    players as \"players!: Json<Vec<Player>>\",\n                    state as \"state!: Json<Vec<Vec<Option<MoveType>>>>\",\n                    moves as \"moves!: Json<Vec<Move>>\",\n                    winner,\n                    is_completed,\n                    created_at,\n                    completed_at\n                FROM GAMES\n                WHERE ($1::uuid IS NULL OR id     = $1)\n                AND ($2::uuid IS NULL OR room_id = $2)\n                AND (is_completed = false)\n            ",
   "describe": {
     "columns": [
       {
@@ -67,5 +67,5 @@
       true
     ]
   },
-  "hash": "3fc0847341fc1cf9715709667b89852c76641025651c0f649f7327eb0222ad73"
+  "hash": "19047a07d4c7de970249b8c6068909209d27cefdb4b279a936c8ce28df197140"
 }

@@ -25,7 +25,7 @@ pub async fn create_room(db: web::Data<Database>, body: web::Json<CreateRoom>, c
 }
 
 #[get("/rooms")]
-pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRooms>, claims: JwtClaims) -> HttpResponse {  
+pub async fn get_rooms_paginated(db: web::Data<Database>, body: web::Json<GetRooms>) -> HttpResponse {  
     let database = db.get_ref();
     match database.get_all_rooms(body.status.clone()).await {
         Ok(rooms) => {

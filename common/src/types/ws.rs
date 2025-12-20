@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use uuid::Uuid;
 
-use crate::types::{Move, Player, Role};
+use crate::types::{Move, Player, Role, Spectator};
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -10,7 +10,7 @@ pub enum WebSocketMessage {
     CreateRoom(CreateRoomArgs),
     CreateGame(CreateInMemoryGameArgs),
     JoinRoom(JoinRoomArgs),
-    LeaveRoom(JoinRoomArgs),
+    LeaveRoom(LeaveRoomArgs),
     SendMessage(SendMessageArgs),
     MoveUpdate(MoveUpdateArgs)
 }
@@ -20,7 +20,7 @@ pub struct CreateRoomArgs {
     pub room_id: Uuid
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreateInMemoryGameArgs {
     pub game_id: Uuid,
     pub room_id: Uuid,
@@ -33,6 +33,14 @@ pub struct CreateInMemoryGameArgs {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JoinRoomArgs {
     pub room_id: Uuid,
+    pub role: Role,
+    pub symbol: Option<MoveType>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LeaveRoomArgs {
+    pub room_id: Uuid,
+    pub game_id: Option<Uuid>,
     pub role: Role
 }
 
@@ -55,7 +63,11 @@ pub struct WebSocketResponse {
 pub enum ResponseData {
     MoveUpdate(MoveUpdateArgs),
     Log(LogArgs),
-    ChatUpdate(ChatUpdateArgs)
+    ChatUpdate(ChatUpdateArgs),
+    RoomUpdate(RoomUpdateArgs),
+    StartGame,
+    EndGame(EndGameArgs),
+    RoomClose
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
@@ -96,6 +108,20 @@ pub struct LogArgs {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ChatUpdateArgs {
     pub message: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RoomUpdateArgs {
+    pub players: Vec<Player>,
+    pub spectators: Vec<Spectator>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EndGameArgs {
+    #[serde(rename="isDraw")]
+    pub is_draw: bool,
+    
+    pub winner: Option<String>,
 }
 
 

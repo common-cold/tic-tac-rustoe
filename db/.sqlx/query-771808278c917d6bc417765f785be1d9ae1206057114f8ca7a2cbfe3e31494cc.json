@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE GAMES\n                SET\n                    players = COALESCE($1, players),\n                    state = COALESCE($2, state),\n                    moves = COALESCE($3, moves),\n                    winner = COALESCE($4, winner),\n                    is_completed = COALESCE($5, is_completed),\n                    completed_at = COALESCE($6, completed_at)\n                WHERE id = $7    \n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb",
+        "Jsonb",
+        "Jsonb",
+        "Uuid",
+        "Bool",
+        "Int8",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "771808278c917d6bc417765f785be1d9ae1206057114f8ca7a2cbfe3e31494cc"
+}

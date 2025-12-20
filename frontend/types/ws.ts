@@ -1,11 +1,11 @@
-import { Move, MoveType, Player, Role } from "./db"
+import { Game, Move, MoveType, Player, Role, Room } from "./db"
 
 //WS Request types
 export type WebSocketMessage =
     | { CreateRoom: CreateRoomArgs }
     | { CreateGame: CreateInMemoryGameArgs }
     | { JoinRoom: JoinRoomArgs }
-    | { LeaveRoom: JoinRoomArgs }
+    | { LeaveRoom: LeaveRoomArgs }
     | { SendMessage: SendMessageArgs }
     | { MoveUpdate: MoveUpdateArgs }
 
@@ -23,6 +23,13 @@ export type CreateInMemoryGameArgs = {
 
 export type JoinRoomArgs = {
     room_id: string,
+    role: Role,
+    symbol?: MoveType
+}
+
+export type LeaveRoomArgs = {
+    room_id: string,
+    game_id?: string | null,
     role: Role
 }
 
@@ -41,7 +48,7 @@ export type MoveUpdateArgs = {
 }
 
 //WS Response types
-export type WebSocketResponseType = "MoveUpdate" | "Log" | "ChatUpdate";
+export type WebSocketResponseType = "MoveUpdate" | "Log" | "ChatUpdate" | "RoomUpdate" | "StartGame" | "EndGame" | "RoomClose";
 
 export interface WebSocketResponseWrapper {
     data: WebSocketResponse;
@@ -54,6 +61,9 @@ export interface WebSocketResponse {
 
 export type ResponseData = 
     | LogArgs
+    | MoveUpdateArgs
+    | RoomUpdateArgs
+    | EndGameArgs
 
 
 export interface LogArgs {
@@ -61,3 +71,9 @@ export interface LogArgs {
     isError: boolean
 }
 
+export interface RoomUpdateArgs extends Pick<Room, 'players' | 'spectators'> {}
+
+export interface EndGameArgs {
+    isDraw: boolean,
+    winner?: string
+}

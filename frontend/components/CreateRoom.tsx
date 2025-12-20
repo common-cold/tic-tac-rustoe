@@ -8,6 +8,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 import { LabelInput, LabelInputNumber } from "./LabelInput";
 import { useRouter } from "next/navigation";
+import { showErrorToast } from "./Homepage";
 
 export function CreateRoom() {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -31,8 +32,8 @@ export function CreateRoom() {
 
         if (!response || response.status != 200) { 
             let data = response?.data as any;
-            console.log(JSON.stringify(response));
             let error = data.error;
+            showErrorToast(error);
             return;
         }
 
