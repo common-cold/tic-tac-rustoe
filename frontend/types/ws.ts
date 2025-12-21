@@ -71,7 +71,7 @@ export interface LogArgs {
     isError: boolean
 }
 
-export interface RoomUpdateArgs extends Pick<Room, 'players' | 'spectators'> {}
+export interface RoomUpdateArgs extends Pick<Room, 'players' | 'spectators' | 'admin'> {}
 
 export interface EndGameArgs {
     isDraw: boolean,

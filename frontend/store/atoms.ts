@@ -80,7 +80,8 @@ export const connectSocketAtom = atom(null, (get, set) => {
                 set(roomAtom, {
                     ...room,
                     players: room.players,
-                    spectators: room.spectators
+                    spectators: room.spectators,
+                    admin: roomUpdate.admin
                 });
                 break; 
         }
@@ -110,3 +111,5 @@ export const gameMenuModalTitleAtom = atom<string | null>(null);
 export const refreshGamePageAtom = atom(false);
 
 export const roomCloseAtom = atom(false);
+
+export const currentRoomAdminAtom = atom<string | null>(null);

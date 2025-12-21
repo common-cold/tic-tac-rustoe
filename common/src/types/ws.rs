@@ -113,7 +113,8 @@ pub struct ChatUpdateArgs {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RoomUpdateArgs {
     pub players: Vec<Player>,
-    pub spectators: Vec<Spectator>
+    pub spectators: Vec<Spectator>,
+    pub admin: Option<Uuid>
 }
 
 #[derive(Debug, Serialize, Deserialize)]

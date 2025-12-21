@@ -1,13 +1,12 @@
 "use client"
-
 import { connectSocketAtom, userAtom, wsAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
 import { useEffect } from "react"
-import { Appbar } from "./Appbar";
-import { GameMenu } from "./GameMenu";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import jwt from "jsonwebtoken";
+import { CreateRoom } from "./CreateRoom";
+import { JoinRoom } from "./JoinRoom";
 
 export function Homepage() {
     const router = useRouter();
@@ -30,12 +29,19 @@ export function Homepage() {
         connect();
     }, []);
 
-    return <div className="flex flex-col gap-10">
-        <div className="flex justify-center">
-            <GameMenu/>
-        </div>
-        
-    </div>
+    return <main className="h-full relative flex flex-col text-[#e8f5e1] overflow-hidden gridBg">
+        <section className="relative flex flex-1 items-start justify-center pt-24 gridBg">
+            <div className="flex flex-row justify-center w-full gap-24">
+            <div className="w-1/3">
+                <CreateRoom />
+            </div>
+
+            <div className="w-1/3">
+                <JoinRoom />
+            </div>
+            </div>
+        </section>
+    </main>
 }
 
 export function showSuccessToast(message: string) {

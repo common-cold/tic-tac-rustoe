@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<Vec<Player>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<Vec<Spectator>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE (room_code = $1)\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    admin,\n                    players as \"players!: Json<Vec<Player>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<Vec<Spectator>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE (id = $1)\n                ORDER BY created_at DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -36,33 +36,38 @@
       },
       {
         "ordinal": 4,
+        "name": "admin",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
         "name": "players!: Json<Vec<Player>>",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "max_players",
         "type_info": "Int2"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "spectators!: Json<Vec<Spectator>>",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "max_spectators",
         "type_info": "Int2"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -70,6 +75,7 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -77,5 +83,5 @@
       false
     ]
   },
-  "hash": "dafdd31598454125a104b51fe21042383f5ba3d822e507b747b0e8aca468135b"
+  "hash": "4d8a926e0783117b7f5166b6cd1676534fe2f0a3ae0492cc3c4be8cf9b617fc1"
 }

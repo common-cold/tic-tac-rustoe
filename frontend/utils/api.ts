@@ -77,7 +77,10 @@ export async function getRoom(roomId: string) {
     try {
         const token = localStorage.getItem("token");
         const response = await axios.get(`http://localhost:8080/room/${roomId}`, {
-            validateStatus: () => true
+            validateStatus: () => true,
+            headers: {
+                Authorization:token
+            }
         });
         return response;
     } catch (e) {

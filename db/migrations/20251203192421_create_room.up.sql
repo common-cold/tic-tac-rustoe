@@ -7,6 +7,7 @@ CREATE TABLE ROOMS (
     room_name TEXT NOT NULL,
     room_code TEXT UNIQUE NOT NULL,
     status ROOM_STATUS NOT NULL,
+    admin UUID DEFAULT NULL,
     players JSONB NOT NULL DEFAULT '[]'::jsonb,
     max_players SMALLINT NOT NULL,
     spectators JSONB NOT NULL DEFAULT '[]'::jsonb,

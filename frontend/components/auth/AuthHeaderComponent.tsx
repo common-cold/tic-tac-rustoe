@@ -5,8 +5,7 @@ export function AuthHeaderComponent() {
         </div>
         <div className="flex flex-row justify-center">
             <div className="text-center text-xl text-white">
-                Challenge friends, create private rooms, <br/>
-                and enjoy real-time matches with a sleek and simple interface.
+                Multiplayer. Real-time. No mercy.
             </div>
         </div>
         

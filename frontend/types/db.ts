@@ -21,6 +21,7 @@ export interface Room {
     room_name: string,
     room_code: string,
     status: RoomStatus,
+    admin?: string,
     players: Player[],
     max_players: Number,
     spectators: Spectator[],

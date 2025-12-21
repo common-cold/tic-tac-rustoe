@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    players as \"players!: Json<Vec<Player>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<Vec<Spectator>>\",\n                    max_spectators,\n                    created_at\n                FROM ROOMS\n                WHERE ($1::room_status IS NULL OR status = $1::room_status)\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                INSERT INTO ROOMS (\n                    room_name,\n                    room_code,\n                    status,\n                    admin,\n                    players,\n                    max_players,\n                    spectators,\n                    max_spectators\n                )\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n                RETURNING \n                    id,\n                    room_name,\n                    room_code,\n                    status AS \"status: RoomStatus\",\n                    admin,\n                    players as \"players!: Json<Vec<Player>>\",\n                    max_players,\n                    spectators as \"spectators!: Json<Vec<Spectator>>\",\n                    max_spectators,\n                    created_at\n            ",
   "describe": {
     "columns": [
       {
@@ -36,32 +36,39 @@
       },
       {
         "ordinal": 4,
+        "name": "admin",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
         "name": "players!: Json<Vec<Player>>",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "max_players",
         "type_info": "Int2"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "spectators!: Json<Vec<Spectator>>",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "max_spectators",
         "type_info": "Int2"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
+        "Text",
+        "Text",
         {
           "Custom": {
             "name": "room_status",
@@ -73,7 +80,12 @@
               ]
             }
           }
-        }
+        },
+        "Uuid",
+        "Jsonb",
+        "Int2",
+        "Jsonb",
+        "Int2"
       ]
     },
     "nullable": [
@@ -81,6 +93,7 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -88,5 +101,5 @@
       false
     ]
   },
-  "hash": "a7b2c994b0a9e7d41fb30d7b3d3918e619f1a58196a91b2f505f17a0654174f7"
+  "hash": "863c387922400e5a97bc6ca826b2685e19c0f0965184988bee7ab5b4739ecb52"
 }

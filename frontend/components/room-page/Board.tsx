@@ -140,8 +140,16 @@ export default function Board() {
         <div className="flex flex-row border-b-2 border-[#151f28] px-3 py-3 justify-center gap-2 items-center w-full">
             {
                 !game
-                ?
-                <CreateGame/>
+                ? 
+                (    
+                    (room!.admin == user!.id)
+                    ?    
+                    <CreateGame/>
+                    :
+                    <div className="font-semibold">
+                        Waiting for admin to start
+                    </div>
+                )
                 :
                 <PlayerHeader hasTurn={hasTurn!}/>
             }

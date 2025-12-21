@@ -25,7 +25,7 @@ pub async fn create_game(db: web::Data<Database>, body: web::Json<CreateGameArgs
     }
     match database.create_game(&body.room_id, players.clone()).await {
         Ok(game) => {
-            match database.update_room(&body.room_id, None, Some(Json(players.clone())), None).await {
+            match database.update_room(&body.room_id, None, Some(Json(players.clone())), None, None).await {
                 Ok(()) => return HttpResponse::Ok().json(game),
 
                 Err(e) => HttpResponse::Conflict().json(json!({

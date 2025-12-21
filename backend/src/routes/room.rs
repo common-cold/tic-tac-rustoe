@@ -73,7 +73,7 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
                         symbol: None
                     });
                     if let Err(e) = database.update_room(&room.id, Some(room.status),
-                    Some(room.players), Some(room.spectators)).await {
+                    Some(room.players), Some(room.spectators), None).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -87,7 +87,7 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
                         username: claims.0.username
                     });
                     if let Err(e) = database.update_room(&room.id, Some(room.status),
-                    Some(room.players), Some(room.spectators)).await {
+                    Some(room.players), Some(room.spectators), None).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -117,7 +117,7 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
                 Role::Player => {
                     room.players.retain(|s| s.id != claims.0.sub);
                     if let Err(e) = database.update_room(&room.id, Some(room.status),
-                    Some(room.players), Some(room.spectators)).await {
+                    Some(room.players), Some(room.spectators), None).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -128,7 +128,7 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
                 Role::Spectator => {
                     room.spectators.retain(|s| s.id != claims.0.sub);
                     if let Err(e) = database.update_room(&room.id, Some(room.status),
-                    Some(room.players), Some(room.spectators)).await {
+                    Some(room.players), Some(room.spectators), None).await {
                         return HttpResponse::Conflict().json(json!({
                             "error": e.to_string()
                         }));
@@ -152,13 +152,35 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
 
 
 #[get("/room/{id}")]
-pub async fn get_room(db: web::Data<Database>, path: web::Path<Uuid>) -> HttpResponse {
+pub async fn get_room(db: web::Data<Database>, path: web::Path<Uuid>, claims: JwtClaims) -> HttpResponse {
     let room_id = path.into_inner();
     let database = db.get_ref();
 
     match database.get_room_by_id(&room_id).await {
         Ok(room) => {
-            return HttpResponse::Ok().json(room);
+            let mut allowed = false;
+            for player in &room.players.0 {
+                if player.id == claims.0.sub {
+                    allowed = true;
+                    break;
+                }
+            }
+            if !allowed {
+                for spectator in &room.spectators.0 {
+                    if spectator.id == claims.0.sub {
+                        allowed = true;
+                        break;
+                    }
+                }
+            }
+            if allowed {
+                return HttpResponse::Ok().json(room);
+            } 
+
+            return HttpResponse::Unauthorized().json(json!({
+                "error": "Please Join the game first"
+            }));
+            
         }
         Err(e) => {
             return HttpResponse::Conflict().json(json!({

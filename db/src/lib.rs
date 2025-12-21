@@ -89,17 +89,19 @@ impl Database {
                     room_name,
                     room_code,
                     status,
+                    admin,
                     players,
                     max_players,
                     spectators,
                     max_spectators
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING 
                     id,
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
+                    admin,
                     players as "players!: Json<Vec<Player>>",
                     max_players,
                     spectators as "spectators!: Json<Vec<Spectator>>",
@@ -109,6 +111,7 @@ impl Database {
             room_name,
             Database::generate_room_code()?,
             RoomStatus::Open as RoomStatus,
+            user_id,
             Json(players) as _,
             2,
             Json(spectators) as _,
@@ -130,6 +133,7 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
+                    admin,
                     players as "players!: Json<Vec<Player>>",
                     max_players,
                     spectators as "spectators!: Json<Vec<Spectator>>",
@@ -156,6 +160,7 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
+                    admin,
                     players as "players!: Json<Vec<Player>>",
                     max_players,
                     spectators as "spectators!: Json<Vec<Spectator>>",
@@ -183,6 +188,7 @@ impl Database {
                     room_name,
                     room_code,
                     status AS "status: RoomStatus",
+                    admin,
                     players as "players!: Json<Vec<Player>>",
                     max_players,
                     spectators as "spectators!: Json<Vec<Spectator>>",
@@ -201,17 +207,19 @@ impl Database {
     }
 
 
-    pub async fn update_room(&self, room_id: &Uuid, status: Option<RoomStatus>, players: Option<Json<Vec<Player>>>, spectators: Option<Json<Vec<Spectator>>>) -> anyhow::Result<()> {
+    pub async fn update_room(&self, room_id: &Uuid, status: Option<RoomStatus>, players: Option<Json<Vec<Player>>>, spectators: Option<Json<Vec<Spectator>>>, admin: Option<Uuid>) -> anyhow::Result<()> {
         sqlx::query!(
             "
                 UPDATE ROOMS
                 SET
                     status = COALESCE($1, status),
-                    players = COALESCE($2, players),
-                    spectators = COALESCE($3, spectators)
-                WHERE id = $4
+                    admin = COALESCE($2, admin),
+                    players = COALESCE($3, players),
+                    spectators = COALESCE($4, spectators)
+                WHERE id = $5
             ",
             status as Option<RoomStatus>,
+            admin as Option<Uuid>,
             players as Option<Json<Vec<Player>>>,
             spectators as Option<Json<Vec<Spectator>>>,
             room_id

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                UPDATE ROOMS\n                SET\n                    status = COALESCE($1, status),\n                    players = COALESCE($2, players),\n                    spectators = COALESCE($3, spectators)\n                WHERE id = $4\n            ",
+  "query": "\n                UPDATE ROOMS\n                SET\n                    status = COALESCE($1, status),\n                    admin = COALESCE($2, admin),\n                    players = COALESCE($3, players),\n                    spectators = COALESCE($4, spectators)\n                WHERE id = $5\n            ",
   "describe": {
     "columns": [],
     "parameters": {
@@ -17,6 +17,7 @@
             }
           }
         },
+        "Uuid",
         "Jsonb",
         "Jsonb",
         "Uuid"
@@ -24,5 +25,5 @@
     },
     "nullable": []
   },
-  "hash": "fb8ad02598394b85f047401bfbddb4b41ceed8459b48da8870319de8a3152312"
+  "hash": "6999ed13224f8b2cae029e6ece3994bb1498a69472760226409c681d92d69aa1"
 }

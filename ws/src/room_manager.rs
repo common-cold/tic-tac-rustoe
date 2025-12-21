@@ -28,7 +28,8 @@ pub struct LocalGame {
 pub struct LocalRoom {
     pub players: Vec<Player>,
     pub spectators: Vec<Spectator>,
-    pub game: Option<LocalGame>
+    pub game: Option<LocalGame>,
+    pub admin: Option<Uuid>
 }
 
 #[derive(Debug)]
@@ -74,7 +75,8 @@ impl RoomManager {
             let local_room = LocalRoom {
                 players: room.players.0.clone(),
                 spectators: room.spectators.0.clone(),
-                game: local_game   
+                game: local_game,
+                admin: room.admin 
             };
 
             rooms.insert(room.id, local_room);
@@ -90,7 +92,8 @@ impl RoomManager {
         LocalRoom {
             players: Vec::new(),
             spectators: Vec::new(),
-            game: None
+            game: None,
+            admin: None
         }
     }
 
@@ -210,7 +213,7 @@ impl RoomManager {
         Ok(())
     }
 
-    pub async fn broadcast_room_update(&self, room_id: &Uuid, user_id_to_ignore: &Uuid, username: &String, is_join_update: bool) -> anyhow::Result<()> {
+    pub async fn broadcast_room_update(&self, room_id: &Uuid, user_id_to_ignore: &Uuid, username: &String, is_join_update: bool, admin: Option<Uuid>) -> anyhow::Result<()> {
         if let Some(room) = self.rooms.get(room_id) {
             for player in &room.players {
                 if *user_id_to_ignore  == player.id {
@@ -220,7 +223,8 @@ impl RoomManager {
                     let response = WebSocketResponse {
                         data: common::types::ResponseData::RoomUpdate(RoomUpdateArgs {
                             players: room.players.clone(),
-                            spectators: room.spectators.clone()
+                            spectators: room.spectators.clone(),
+                            admin: admin
                         })
                     };
                     let str = serde_json::to_string(&response).unwrap();
@@ -242,7 +246,8 @@ impl RoomManager {
                     let response = WebSocketResponse {
                         data: common::types::ResponseData::RoomUpdate(RoomUpdateArgs {
                             players: room.players.clone(),
-                            spectators: room.spectators.clone()
+                            spectators: room.spectators.clone(),
+                            admin: admin
                         })
                     };
                     let str = serde_json::to_string(&response).unwrap();

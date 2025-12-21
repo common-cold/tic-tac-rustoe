@@ -58,7 +58,6 @@ export default function RoomPage({params} :
         if (!response || response.status != 200) { 
             let data = response?.data as any;
             let error = data.error;
-            showErrorToast(error);
             return;
         }
         let dbGame = response.data as GameType;

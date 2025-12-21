@@ -3,7 +3,6 @@ use std::sync::MutexGuard;
 use actix_ws::Session;
 use common::types::{CreateRoomArgs, JoinRoomArgs, LeaveRoomArgs, Player, Role, Spectator};
 use db::Database;
-use sqlx::database;
 use uuid::Uuid;
 
 use crate::{room_manager::RoomManager, utils::prepare_log};
@@ -11,6 +10,7 @@ use crate::{room_manager::RoomManager, utils::prepare_log};
 
 pub async fn create_room_handler(room_manager: &mut MutexGuard<'_, RoomManager>, session: &mut Session, args: CreateRoomArgs, user_id: Uuid, username: String) {
     let mut room = RoomManager::init_room();
+    room.admin = Some(user_id);
     room.players.push(Player {
         id: user_id,
         username: username.clone(),
@@ -53,7 +53,7 @@ pub async fn join_room_handler(room_manager: &mut MutexGuard<'_, RoomManager>, s
     let log = prepare_log(String::from("Room Joined Successfully"), false);
     let _ = session.text(log).await;
     
-    if let Err (e) = room_manager.broadcast_room_update(&args.room_id, &user_id, &username, true).await {
+    if let Err (e) = room_manager.broadcast_room_update(&args.room_id, &user_id, &username, true, None).await {
         let log = prepare_log(format!("Error while updating room: {}", e.to_string()), true);
         let _ = session.text(log).await;
     }
@@ -84,6 +84,20 @@ pub async fn leave_room_handler(room_manager: &mut MutexGuard<'_, RoomManager>, 
     let log = prepare_log(String::from("Room Left Successfully"), false);
     let _ = session.text(log).await;
 
+    let mut new_admin;
+    let old_admin;
+    {
+        let room = room_manager.rooms.get_mut(&args.room_id).unwrap();
+        old_admin = room.admin;
+        new_admin = room.admin;
+        if room.players.len() == 1 {
+            if room.admin.unwrap() != room.players[0].id {
+                new_admin = Some(room.players[0].id);
+            }
+        }
+        room.admin = new_admin;
+    }
+
     //Last player left so close the room
     if room_manager.rooms.get(&args.room_id).unwrap().players.len() == 0 {
         let mut session_clone = session.clone();
@@ -95,8 +109,8 @@ pub async fn leave_room_handler(room_manager: &mut MutexGuard<'_, RoomManager>, 
                 }
             }, 
             async {
-                if let Err(e) = database.update_room(&args.room_id, Some(common::types::RoomStatus::Closed), None, None).await {
-                    let log = prepare_log(format!("Error in Db close game update: {:?}", e.to_string()), true);
+                if let Err(e) = database.update_room(&args.room_id, Some(common::types::RoomStatus::Closed), None, None, None).await {
+                    let log = prepare_log(format!("Error in Db close room update: {:?}", e.to_string()), true);
                     let _ = session_clone.text(log).await;
                 }
             }
@@ -105,10 +119,18 @@ pub async fn leave_room_handler(room_manager: &mut MutexGuard<'_, RoomManager>, 
         return;
     }
 
-    if let Err (e) = room_manager.broadcast_room_update(&args.room_id, &user_id, username, false).await {
+    if old_admin != new_admin {
+        if let Err(e) = database.update_room(&args.room_id, None, None, None, new_admin).await {
+            let log = prepare_log(format!("Error in Db change admin update: {:?}", e.to_string()), true);
+            let _ = session.text(log).await;
+        }
+    }
+    
+    if let Err (e) = room_manager.broadcast_room_update(&args.room_id, &user_id, username, false, new_admin).await {
         let log = prepare_log(format!("Error while updating room: {}", e.to_string()), true);
         let _ = session.text(log).await;
     }
+    
 
     if let Some(game_id) = args.game_id {
         if let Role::Spectator = args.role {

@@ -4,12 +4,14 @@ import { useAtomValue } from "jotai";
 import { Signout } from "./auth/Signout";
 import { userAgent } from "next/server";
 import { userAtom } from "@/store/atoms";
+import { usePathname } from "next/navigation";
 
 
 export function Appbar() {
     const user = useAtomValue(userAtom);
+    const pathname = usePathname();
 
-    return <div className="flex justify-between items-center px-5 pt-5">
+    return <div className={`flex justify-between items-center px-5 pt-5`}>
         <div className="primaryTextColor font-satoshi font-extrabold text-5xl">
             TicTacFight
         </div>

@@ -29,6 +29,7 @@ pub struct Room {
     pub room_name: String,
     pub room_code: String,
     pub status: RoomStatus,
+    pub admin: Option<Uuid>,
     pub players: Json<Vec<Player>>,
     pub max_players: i16,
     pub spectators: Json<Vec<Spectator>>,
