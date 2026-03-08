@@ -24,7 +24,7 @@ jobs:
               git clone https://github.com/common-cold/tic-tac-rustoe.git .
             else 
               git fetch origin
-              git reset --hard origin/master
+              git reset --hard origin/main
             fi
             source $HOME/.cargo/env  
             cargo build --release
