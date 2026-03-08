@@ -19,6 +19,7 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}    
           port: 22
           script: |
+            export PATH=$PATH:$HOME/.npm-global/bin
             cd ~/apps/tic-tac-rustoe
             git fetch origin   
             git reset --hard origin/main
