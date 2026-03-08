@@ -1,12 +1,13 @@
 import { CreateGame, CreateRoom, GetGame, JoinRoom, SignIn, SignUp } from "@/types/route";
 import axios from "axios";
 
-
+export const WS_BASE_URL = "ws://13.233.8.70:8081";
+const API_BASE_URL = "http://13.233.8.70:8080";
 
 
 export async function signUp(body: SignUp) {
     try {
-        const response = await axios.post("http://localhost:8080/signup", body, {
+        const response = await axios.post(`${API_BASE_URL}/signup`, body, {
             validateStatus: () => true
         });
         return response;
@@ -17,7 +18,7 @@ export async function signUp(body: SignUp) {
 
 export async function signIn(body: SignIn) {
     try {
-        const response = await axios.post("http://localhost:8080/signin", body, {
+        const response = await axios.post(`${API_BASE_URL}/signin`, body, {
             validateStatus: () => true
         });
         return response;
@@ -30,7 +31,7 @@ export async function signIn(body: SignIn) {
 export async function createRoom(body: CreateRoom) {
     try {
         const token = localStorage.getItem("token");
-        const response = await axios.post("http://localhost:8080/room", body, {
+        const response = await axios.post(`${API_BASE_URL}/room`, body, {
             validateStatus: () => true,
             headers: {
                 Authorization: token
@@ -45,7 +46,7 @@ export async function createRoom(body: CreateRoom) {
 export async function joinRoom(body: JoinRoom) {
     try {
         const token = localStorage.getItem("token");
-        const response = await axios.post("http://localhost:8080/room/join", body, {
+        const response = await axios.post(`${API_BASE_URL}/room/join`, body, {
             validateStatus: () => true,
             headers: {
                 Authorization:token
@@ -61,7 +62,7 @@ export async function joinRoom(body: JoinRoom) {
 export async function leaveRoom(body: JoinRoom) {
     try {
         const token = localStorage.getItem("token");
-        const response = await axios.post("http://localhost:8080/room/leave", body, {
+        const response = await axios.post(`${API_BASE_URL}/room/leave`, body, {
             validateStatus: () => true,
             headers: {
                 Authorization:token
@@ -76,7 +77,7 @@ export async function leaveRoom(body: JoinRoom) {
 export async function getRoom(roomId: string) {
     try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:8080/room/${roomId}`, {
+        const response = await axios.get(`${API_BASE_URL}/room/${roomId}`, {
             validateStatus: () => true,
             headers: {
                 Authorization:token
@@ -92,7 +93,7 @@ export async function createGame(body: CreateGame) {
     console.log(body);
     try {
         const token = localStorage.getItem("token");
-        const response = await axios.post("http://localhost:8080/game", body, {
+        const response = await axios.post(`${API_BASE_URL}/game`, body, {
             validateStatus: () => true,
             headers: {
                 Authorization:token
@@ -107,7 +108,7 @@ export async function createGame(body: CreateGame) {
 export async function getGame(body: GetGame) {
     try {
         const token = localStorage.getItem("token");
-        const response = await axios.post("http://localhost:8080/game/fetch", body, {
+        const response = await axios.post(`${API_BASE_URL}/game/fetch`, body, {
             validateStatus: () => true
         });
         return response;

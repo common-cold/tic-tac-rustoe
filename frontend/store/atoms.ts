@@ -1,7 +1,9 @@
 import { showErrorToast, showSuccessToast } from "@/components/Homepage";
 import { Game, LocalGame, MoveType, Room, User } from "@/types/db";
 import { EndGameArgs, LogArgs, MoveUpdateArgs, RoomUpdateArgs, WebSocketResponseWrapper } from "@/types/ws";
+import { WS_BASE_URL } from "@/utils/api";
 import { atom } from "jotai";
+
 
 export const wsAtom = atom<WebSocket | null>(null);
 
@@ -11,7 +13,7 @@ export const connectSocketAtom = atom(null, (get, set) => {
     }
 
     const token = localStorage.getItem("token");
-    let websocket = new WebSocket(`ws://localhost:8081/ws?token=${token}`);
+    let websocket = new WebSocket(`${WS_BASE_URL}/ws?token=${token}`);
 
     websocket.onopen = () => console.log("Ws Connected");
 
