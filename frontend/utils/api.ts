@@ -5,6 +5,7 @@ export const WS_BASE_URL = "ws://13.233.8.70:8081";
 const API_BASE_URL = "http://13.233.8.70:8080";
 
 
+
 export async function signUp(body: SignUp) {
     try {
         const response = await axios.post(`${API_BASE_URL}/signup`, body, {
