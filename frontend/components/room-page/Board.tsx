@@ -123,7 +123,6 @@ export default function Board() {
             }
         }  
 
-        console.log(JSON.stringify(msg));
 
         ws?.send(JSON.stringify(msg));
     }
@@ -144,7 +143,13 @@ export default function Board() {
                 (    
                     (room!.admin == user!.id)
                     ?    
-                    <CreateGame/>
+                    <>
+                        <CreateGame/>
+                        <div className="rounded-[7px] h-[50px] px-3 primaryButton font-bold flex items-center">
+                            Room Code: {room?.room_code}
+                        </div>
+                    </>
+                    
                     :
                     <div className="font-semibold">
                         Waiting for admin to start

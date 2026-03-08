@@ -11,7 +11,7 @@ export function Appbar() {
     const user = useAtomValue(userAtom);
     const pathname = usePathname();
 
-    return <div className={`flex justify-between items-center px-5 pt-5`}>
+    return <div className={`flex justify-between items-center px-5 pt-5 mb-3`}>
         <div className="primaryTextColor font-satoshi font-extrabold text-5xl">
             TicTacFight
         </div>

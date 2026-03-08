@@ -81,7 +81,7 @@ export const connectSocketAtom = atom(null, (get, set) => {
                     ...room,
                     players: room.players,
                     spectators: room.spectators,
-                    admin: roomUpdate.admin
+                    admin: roomUpdate.admin ? roomUpdate.admin : room.admin
                 });
                 break; 
         }

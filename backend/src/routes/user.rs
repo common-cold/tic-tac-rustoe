@@ -1,4 +1,4 @@
-use std::{env, result};
+use std::{env};
 
 use actix_web::{HttpResponse, post, web::{self}};
 use common::{auth::Claims, types::{Signin, Signup}};

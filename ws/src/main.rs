@@ -96,7 +96,7 @@ pub async fn ws_handler(request: HttpRequest, body: Payload, state: web::Data<Ws
                                     if let Err(e) = room_manager.update_game(args) {
                                         let log = prepare_log(format!("Error in Move Update: {:?}", e.to_string()), true);
                                         let _ = session.text(log).await;
-                                        return;
+                                        continue;
                                     }
                                 }
                                 let room = room_manager.rooms.get(&args.room_id).unwrap();

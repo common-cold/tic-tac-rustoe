@@ -18,8 +18,6 @@ export function CreateRoom() {
     const setRoom = useSetAtom(roomAtom);
     const router = useRouter();
 
-    console.log(isExpanded);
-
     async function handleCreateRoom() {
         if (!roomName) {
             return;

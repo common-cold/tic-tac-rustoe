@@ -1,0 +1,33 @@
+name: Deploy TicTacToe
+
+on: 
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}  
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.PRIVATE_SSH_KEY }}    
+          port: 22
+          script: |
+            cd ~/apps/tictactoe
+            if [ ! -d ."git" ]; then
+              git clone https://github.com/common-cold/tic-tac-rustoe.git .
+            else 
+              git fetch origin
+              git reset --hard origin/master
+            fi
+            source $HOME/.cargo/env  
+            cargo build --release
+            pm2 restart tictactoe-backend || pm2 start ./target/release/backend --name tictactoe-backend
+            pm2 restart tictactoe-ws || pm2 start ./target/release/ws --name tictactoe-ws
+            pm2 save

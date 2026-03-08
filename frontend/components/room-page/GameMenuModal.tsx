@@ -1,4 +1,3 @@
-import { CreateGame } from "../CreateGame";
 import { LeaveRoom } from "../LeaveRoom";
 import RejoinRoom from "../RejoinRoom";
 
