@@ -19,13 +19,9 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}    
           port: 22
           script: |
-            cd ~/apps/tictactoe
-            if [ ! -d ."git" ]; then
-              git clone https://github.com/common-cold/tic-tac-rustoe.git .
-            else 
-              git fetch origin
-              git reset --hard origin/main
-            fi
+            cd ~/apps/tic-tac-rustoe
+            git fetch origin
+            git reset --hard origin/main
             source $HOME/.cargo/env  
             cargo build --release
             pm2 restart tictactoe-backend || pm2 start ./target/release/backend --name tictactoe-backend
