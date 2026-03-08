@@ -19,7 +19,8 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}    
           port: 22
           script: |
-            export PATH=$PATH:$HOME/.npm-global/bin
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             cd ~/apps/tic-tac-rustoe
             git fetch origin   
             git reset --hard origin/main
