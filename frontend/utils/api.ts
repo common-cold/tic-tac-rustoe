@@ -1,8 +1,8 @@
 import { CreateGame, CreateRoom, GetGame, JoinRoom, SignIn, SignUp } from "@/types/route";
 import axios from "axios";
 
-export const WS_BASE_URL = "ws://13.233.8.70:8081";
-const API_BASE_URL = "http://13.233.8.70:8080";
+export const WS_BASE_URL = "wss://tictactoe.prajjwalk.com/ws";
+const API_BASE_URL = "https://tictactoe.prajjwalk.com";
 
 
 
