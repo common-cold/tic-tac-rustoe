@@ -25,7 +25,7 @@ jobs:
             git fetch origin   
             git reset --hard origin/main
             source $HOME/.cargo/env  
-            cargo build --release
+            cargo build --release 
             pm2 restart tictactoe-backend || pm2 start ./target/release/backend --name tictactoe-backend
             pm2 restart tictactoe-ws || pm2 start ./target/release/ws --name tictactoe-ws
             pm2 save
