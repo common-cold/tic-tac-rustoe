@@ -18,7 +18,11 @@ export function AuthBoxInputs({name, argsTupleArray, handleSubmit, isSignUp}: Au
                         {label}
                     </div>
                     <div>
-                        <input className="inputStyle w-full" onChange={(e) => setter(e.target.value)}/>
+                        <input 
+                            className="inputStyle w-full" 
+                            onChange={(e) => setter(e.target.value)}
+                            type =  {label == "Password" ? "password" : "text"}
+                        />
                     </div>
                 </div>
             })
