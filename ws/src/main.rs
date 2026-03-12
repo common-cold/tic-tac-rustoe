@@ -188,7 +188,6 @@ pub async fn main() -> Result<()> {
     let database = Database::new().await.unwrap();
 
     let room_manager = RoomManager::sync_db(&database).await.unwrap();
-    println!("Rooms = {:?}", room_manager.rooms);
 
     let mut_room_manager = Arc::new(Mutex::new(room_manager));
 

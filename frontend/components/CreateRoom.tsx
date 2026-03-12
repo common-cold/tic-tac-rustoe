@@ -5,7 +5,7 @@ import { Room } from "@/types/db";
 import { WebSocketMessage } from "@/types/ws";
 import { createRoom } from "@/utils/api";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LabelInput, LabelInputNumber } from "./LabelInput";
 import { useRouter } from "next/navigation";
 import { showErrorToast } from "./Homepage";
@@ -17,6 +17,35 @@ export function CreateRoom() {
     const ws = useAtomValue(wsAtom);
     const setRoom = useSetAtom(roomAtom);
     const router = useRouter();
+
+    const ref = useRef<HTMLDivElement>(null);
+    const isExpandedRef = useRef(isExpanded);
+
+    useEffect(() => {
+        isExpandedRef.current = isExpanded
+    }, [isExpanded]);
+    
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (isExpandedRef.current && ref.current && !ref.current.contains(e.target as Node)) {
+                setIsExpanded(false);
+            }
+        }
+
+        function handleKeyboard(e: KeyboardEvent) {
+            if (isExpandedRef.current && e.key == "Escape") {
+                setIsExpanded(false);
+            }
+        }
+
+        window.addEventListener("mousedown", handleClick);
+        window.addEventListener("keydown", handleKeyboard);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClick);
+            document.removeEventListener("keydown", handleKeyboard);
+        }
+    }, [])
 
     async function handleCreateRoom() {
         if (!roomName) {
@@ -64,8 +93,9 @@ export function CreateRoom() {
         
     }
 
-
-    return <div className="w-full flex justify-center relative">
+    return <div 
+        ref={ref}
+        className="w-full flex justify-center relative">
         <button className="rounded-[7px] w-3/5 h-[50px] primaryButton font-bold"
             onClick={() => setIsExpanded(prev => !prev)}>
             Create Room

@@ -21,16 +21,21 @@ export function JoinRoom() {
     const router = useRouter();
 
     const ref = useRef<HTMLDivElement>(null);
+    const isExpandedRef = useRef(isExpanded);
+
+    useEffect(() => {
+        isExpandedRef.current = isExpanded
+    }, [isExpanded]);
 
     useEffect(() => {
         function handleClick(e: MouseEvent) {
-            if (!isExpanded && ref.current && !ref.current.contains(e.target as Node)) {
+            if (isExpandedRef.current && ref.current && !ref.current.contains(e.target as Node)) {
                 setIsExpanded(false);
             }
         }
 
         function handleKeyboard(e: KeyboardEvent) {
-            if (!isExpanded && e.key == "Escape") {
+            if (isExpandedRef.current && e.key == "Escape") {
                 setIsExpanded(false);
             }
         }

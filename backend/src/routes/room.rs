@@ -78,8 +78,6 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
                             "error": e.to_string()
                         }));
                     }
-                    
-                    //handle user side changes 
                 }
                 Role::Spectator => {
                     room.spectators.push(Spectator {
@@ -92,8 +90,6 @@ pub async fn join_room(db: web::Data<Database>, body: web::Json<JoinRoom>, claim
                             "error": e.to_string()
                         }));
                     }
-
-                    //handle user side changes 
                 }
             };
 
@@ -122,8 +118,7 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
                             "error": e.to_string()
                         }));
                     }
-                    
-                    //handle user side changes 
+
                 }
                 Role::Spectator => {
                     room.spectators.retain(|s| s.id != claims.0.sub);
@@ -134,7 +129,6 @@ pub async fn leave_room(db: web::Data<Database>, body: web::Json<JoinRoom>, clai
                         }));
                     }
 
-                    //handle user side changes 
                 }
             };
 
