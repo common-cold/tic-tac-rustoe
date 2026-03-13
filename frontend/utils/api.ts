@@ -4,6 +4,9 @@ import axios from "axios";
 export const WS_BASE_URL = "wss://tictactoe.prajjwalk.com/ws";
 const API_BASE_URL = "https://tictactoe.prajjwalk.com";
 
+// export const WS_BASE_URL = "ws://localhost:8081";
+// const API_BASE_URL = "http://localhost:8080";
+
 
 
 export async function signUp(body: SignUp) {

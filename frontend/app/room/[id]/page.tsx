@@ -148,10 +148,6 @@ export default function RoomPage({params} :
     }
     
     useEffect(() => {
-        if (!gameStartedAtom) {
-            return;
-        }
-
         async function init() {
             await fetchRoom()
             await fetchGame()

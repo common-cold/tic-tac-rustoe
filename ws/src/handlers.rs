@@ -132,6 +132,7 @@ pub async fn leave_room_handler(room_manager: &mut MutexGuard<'_, RoomManager>, 
     }
     
 
+    //game handling
     if let Some(game_id) = args.game_id {
         if let Role::Spectator = args.role {
             return;

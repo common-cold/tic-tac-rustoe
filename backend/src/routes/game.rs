@@ -1,5 +1,5 @@
 use actix_web::{HttpResponse, get, post, put, web};
-use common::types::{CreateGameArgs, GetGame, GetGames, MoveType, Player, UpdateGame};
+use common::types::{CreateGameArgs, GetGame, GetGames, MoveType, Player, RoomStatus, UpdateGame};
 use db::Database;
 use page_hunter::paginate_records;
 use rand::{rng, seq::SliceRandom};
@@ -10,6 +10,29 @@ use sqlx::types::Json;
 #[post("/game")]
 pub async fn create_game(db: web::Data<Database>, body: web::Json<CreateGameArgs>) -> HttpResponse {
     let database: &Database = db.get_ref();
+
+    let room = match database.get_room_by_id(&body.room_id).await {
+        Ok(val) => val,
+        Err(e) => {
+            return HttpResponse::Conflict().json(json!({
+                "error": e.to_string()
+            }));
+        }
+    };
+
+    match room.status {
+        RoomStatus::Closed => {
+            return HttpResponse::BadRequest().json(json!({
+                "error": "Cannot Join Closed room"
+            }));
+        },
+        RoomStatus::InProgress => {
+            return HttpResponse::BadRequest().json(json!({
+                "error": "Cannot Join InProgress room"
+            }));
+        },
+        _ => {}
+    }
 
     let mut players = Vec::new();
     let mut moves = vec![MoveType::O, MoveType::X];
@@ -25,7 +48,7 @@ pub async fn create_game(db: web::Data<Database>, body: web::Json<CreateGameArgs
     }
     match database.create_game(&body.room_id, players.clone()).await {
         Ok(game) => {
-            match database.update_room(&body.room_id, None, Some(Json(players.clone())), None, None).await {
+            match database.update_room(&body.room_id, Some(common::types::RoomStatus::InProgress), Some(Json(players.clone())), None, None).await {
                 Ok(()) => return HttpResponse::Ok().json(game),
 
                 Err(e) => HttpResponse::Conflict().json(json!({
